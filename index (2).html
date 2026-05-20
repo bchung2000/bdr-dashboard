@@ -1,0 +1,2386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDR Command Center — Brian</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #faf8f4;
+    --bg2: #f3f0ea;
+    --bg3: #eceae3;
+    --bg4: #e2dfd6;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --accent: #7c6fcd;
+    --accent2: #5c4fb5;
+    --accent-glow: rgba(124,111,205,0.12);
+    --text: #2c2a24;
+    --text2: #6b6760;
+    --text3: #9c9890;
+    --green: #2d9e6b;
+    --amber: #c87c2a;
+    --red: #c94040;
+    --teal: #2a8f8f;
+    --purple: #7c6fcd;
+    --sidebar-w: 240px;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-text {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .nav {
+    padding: 16px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .nav-section {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text3);
+    padding: 12px 8px 6px;
+    font-weight: 500;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13.5px;
+    color: var(--text2);
+    font-weight: 400;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+
+  .nav-item.active {
+    background: rgba(124,111,205,0.1);
+    color: var(--accent2);
+    border-color: rgba(124,111,205,0.25);
+    font-weight: 500;
+  }
+
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c6fcd, #a89ee0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: white;
+    font-family: var(--font-display);
+  }
+
+  .user-info { flex: 1; }
+  .user-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .user-role { font-size: 11px; color: var(--text3); }
+
+  /* MAIN */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-height: 100vh;
+    overflow-y: auto;
+    padding: 32px 36px;
+    max-height: 100vh;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header {
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .page-sub {
+    font-size: 14px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    margin-bottom: 14px;
+  }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* TAGS */
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    margin: 3px 3px 3px 0;
+  }
+  .tag-blue { background: rgba(79,110,247,0.15); color: var(--accent2); }
+  .tag-green { background: rgba(34,197,94,0.12); color: var(--green); }
+  .tag-amber { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .tag-red { background: rgba(239,68,68,0.12); color: var(--red); }
+  .tag-purple { background: rgba(168,85,247,0.12); color: var(--purple); }
+  .tag-teal { background: rgba(20,184,166,0.12); color: var(--teal); }
+
+  /* SCRIPT BLOCKS */
+  .script-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text2);
+  }
+
+  .script-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent2);
+    margin-bottom: 6px;
+  }
+
+  /* OBJECTION */
+  .objection-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+
+  .objection-q {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--red);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .objection-a {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text2);
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+
+  .rebuttal-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+
+  /* EMAIL TEMPLATES */
+  .email-template {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .email-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .email-type {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .email-subject {
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .email-body {
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text2);
+    white-space: pre-line;
+  }
+
+  .copy-btn {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { background: var(--bg4); color: var(--text); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+  .ev-type-btn {
+    padding: 8px 14px; background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 8px; font-size: 13px; color: var(--text2); cursor: pointer;
+    font-family: var(--font-body); transition: all 0.15s;
+  }
+  .ev-type-btn:hover { border-color: var(--accent); color: var(--text); }
+  .ev-type-btn.active { background: rgba(79,110,247,0.12); border-color: var(--accent); color: var(--accent2); font-weight: 600; }
+
+  /* QUESTIONS */
+  .question-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .q-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent-glow);
+    border: 1px solid rgba(79,110,247,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: var(--accent2);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .q-text { font-size: 14px; color: var(--text2); line-height: 1.6; flex: 1; }
+  .q-goal { font-size: 12px; color: var(--text3); margin-top: 4px; font-style: italic; }
+
+  /* PIVOT */
+  .pivot-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+
+  .pivot-trigger {
+    font-size: 13px;
+    color: var(--amber);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .pivot-response {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text2);
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+
+  /* AI STORY */
+  .ai-stat {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    text-align: center;
+  }
+
+  .ai-number {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent2);
+  }
+
+  .ai-label {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+
+  /* ACCENT LINE */
+  .accent-line {
+    width: 32px; height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    font-size: 13px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.15s;
+  }
+
+  .tab:hover { background: var(--bg3); color: var(--text); }
+  .tab.active { background: var(--accent-glow); color: var(--accent2); border-color: rgba(79,110,247,0.3); font-weight: 500; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 10px; }
+
+  /* HIGHLIGHT */
+  .highlight { color: var(--accent2); font-weight: 500; }
+  .highlight-green { color: var(--green); font-weight: 500; }
+
+  /* SEARCH */
+  .search-bar {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: var(--font-body);
+    margin-bottom: 20px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-bar:focus { border-color: var(--accent); }
+  .search-bar::placeholder { color: var(--text3); }
+
+</style>
+</head>
+<body>
+
+<!-- API KEY MODAL -->
+<div id="api-key-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+    <div style="font-size:28px;margin-bottom:12px;">🔑</div>
+    <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">Enter your Anthropic API Key</div>
+    <div style="font-size:13px;color:var(--text3);line-height:1.7;margin-bottom:20px;">Your key is saved only to <strong>this browser</strong> and never sent anywhere except directly to Anthropic's API. Get your key at <span style="color:var(--accent2);">console.anthropic.com/settings/keys</span></div>
+    <input id="api-key-input" type="password" placeholder="sk-ant-api03-..." onkeydown="if(event.key==='Enter') submitApiKey()" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;box-sizing:border-box;margin-bottom:8px;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'" />
+    <div id="api-key-error" style="display:none;font-size:12px;color:var(--red);margin-bottom:10px;">⚠ That doesn't look like a valid Anthropic API key. It should start with sk-ant-</div>
+    <button onclick="submitApiKey()" style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:10px;font-size:15px;font-weight:700;color:white;cursor:pointer;font-family:var(--font-display);">Save & Continue ⚡</button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-text">BDR Command</div>
+    <div class="logo-sub">Infor WMS · Distribution</div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item" onclick="showPage('coach', this)" style="background:rgba(79,110,247,0.12);border:1px solid rgba(79,110,247,0.25);color:var(--accent2);font-weight:500;">
+      <span class="nav-icon">⚡</span> AI Call Coach
+    </div>
+    <div class="nav-item" onclick="showPage('acctintel', this)">
+      <span class="nav-icon">🔍</span> Account Intel
+    </div>
+    <div class="nav-item" onclick="showPage('intentfeed', this)">
+      <span class="nav-icon">📡</span> Live Intent Feed
+    </div>
+    <div class="nav-item active" onclick="showPage('home', this)">
+      <span class="nav-icon">🏠</span> Dashboard
+    </div>
+
+    <div class="nav-section">Calls</div>
+    <div class="nav-item" onclick="showPage('scripts', this)">
+      <span class="nav-icon">📞</span> Call Scripts & Questions
+    </div>
+    <div class="nav-item" onclick="showPage('objections', this)">
+      <span class="nav-icon">🛡</span> Objection Handling
+    </div>
+
+    <div class="nav-section">Emails</div>
+    <div class="nav-item" onclick="showPage('emails', this)">
+      <span class="nav-icon">✉</span> Email Templates
+    </div>
+
+    <div class="nav-section">Outreach</div>
+    <div class="nav-item" onclick="showPage('events', this)">
+      <span class="nav-icon">🎪</span> Event Outreach
+    </div>
+    <div class="nav-item" onclick="showPage('notes', this)">
+      <span class="nav-icon">📝</span> Call Notes
+    </div>
+
+    <div class="nav-section">Intel</div>
+    <div class="nav-item" onclick="showPage('ai', this)">
+      <span class="nav-icon">🤖</span> AI Story & Stats
+    </div>
+    <div class="nav-item" onclick="showPage('references', this)">
+      <span class="nav-icon">🏆</span> Customer References
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar">B</div>
+      <div class="user-info">
+        <div class="user-name">Brian</div>
+        <div class="user-role">Senior WMS BDR</div>
+      </div>
+    </div>
+    <div onclick="clearApiKey()" style="margin-top:10px;font-size:11px;color:var(--text3);cursor:pointer;text-align:center;padding:6px;border-radius:6px;transition:all 0.15s;" onmouseover="this.style.color='var(--text2)'" onmouseout="this.style.color='var(--text3)'">🔑 Reset API Key</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ACCOUNT INTELLIGENCE -->
+  <div class="page" id="page-acctintel">
+    <div class="page-header">
+      <div class="page-title">🔍 Account Intelligence</div>
+      <div class="page-sub">Type a company name and get everything you need before you dial</div>
+    </div>
+
+    <div class="card" style="border:1px solid rgba(124,111,205,0.25);margin-bottom:16px;">
+      <div style="display:flex;gap:12px;align-items:flex-end;">
+        <div style="flex:1;">
+          <label style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;display:block;margin-bottom:8px;">Company Name</label>
+          <input id="acct-input" type="text" placeholder="e.g. Ferguson Enterprises, Grainger, HD Supply..." onkeydown="if(event.key==='Enter') runAcctIntel()" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;font-size:15px;color:var(--text);font-family:var(--font-body);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'" />
+        </div>
+        <button onclick="runAcctIntel()" id="acct-btn" style="padding:12px 24px;background:var(--accent);border:none;border-radius:10px;font-size:14px;font-weight:600;color:white;cursor:pointer;font-family:var(--font-display);height:48px;white-space:nowrap;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Research ⚡</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:10px;">Press Enter or click Research · Powered by AI + live web data · Takes ~15 seconds</div>
+    </div>
+
+    <div id="acct-loading" style="display:none;text-align:center;padding:48px 24px;">
+      <div style="font-size:28px;margin-bottom:12px;">🔍</div>
+      <div id="acct-loading-msg" style="font-size:15px;color:var(--text2);font-weight:500;">Researching company...</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px;">Pulling news, decision makers, talking points & outreach ideas</div>
+      <div style="margin-top:20px;width:200px;height:3px;background:var(--bg3);border-radius:2px;margin-left:auto;margin-right:auto;overflow:hidden;">
+        <div id="acct-progress-bar" style="width:0%;height:100%;background:var(--accent);border-radius:2px;transition:width 0.4s ease;"></div>
+      </div>
+    </div>
+
+    <div id="acct-output" style="display:none;">
+
+      <!-- TOP SUMMARY ROW -->
+      <div class="grid2" style="margin-bottom:16px;">
+        <div class="card" style="margin:0;border-left:3px solid var(--accent);">
+          <div class="card-title">Company Snapshot</div>
+          <div id="acct-snapshot" style="font-size:14px;line-height:1.8;color:var(--text2);"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="card" style="margin:0;border-left:3px solid var(--amber);flex:1;">
+            <div class="card-title">🎯 Where to Start</div>
+            <div id="acct-where-to-start" style="font-size:14px;line-height:1.8;color:var(--text2);"></div>
+          </div>
+          <div class="card" style="margin:0;border-left:3px solid var(--green);flex:1;">
+            <div class="card-title">📰 Key Trigger Events</div>
+            <div id="acct-news" style="font-size:13px;line-height:1.8;color:var(--text2);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAIN POINTS -->
+      <div class="card" style="margin-bottom:16px;border-left:3px solid var(--green);">
+        <div class="card-title">Pain Points & WMS Opportunity</div>
+        <div id="acct-pain" style="font-size:14px;line-height:1.8;color:var(--text2);"></div>
+      </div>
+
+      <!-- PERSONA TARGET CARDS -->
+      <div style="margin-bottom:8px;">
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;">👥 Target Personas</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:16px;">Click Generate to create personalized outreach for each person</div>
+      </div>
+
+      <div id="acct-personas-grid" style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px;"></div>
+
+      <!-- OUTREACH MODAL OVERLAY -->
+      <div id="acct-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px;max-width:640px;width:90%;max-height:85vh;overflow-y:auto;position:relative;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+            <div>
+              <div id="acct-modal-title" style="font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--text);"></div>
+              <div id="acct-modal-sub" style="font-size:12px;color:var(--text3);margin-top:3px;"></div>
+            </div>
+            <button onclick="closeAcctModal()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--text2);cursor:pointer;font-family:var(--font-body);">✕ Close</button>
+          </div>
+          <div id="acct-modal-loading" style="display:none;text-align:center;padding:32px;">
+            <div style="font-size:22px;margin-bottom:10px;">✍️</div>
+            <div style="font-size:14px;color:var(--text2);">Generating personalized outreach...</div>
+          </div>
+          <div id="acct-modal-content" style="display:none;">
+            <!-- email subject if applicable -->
+            <div id="acct-modal-subject" style="font-size:12px;color:var(--accent2);font-weight:600;margin-bottom:8px;"></div>
+            <div id="acct-modal-body" style="font-size:14px;line-height:1.9;color:var(--text2);white-space:pre-wrap;background:var(--bg3);border-radius:10px;padding:16px 18px;border:1px solid var(--border);"></div>
+            <div style="display:flex;gap:10px;margin-top:16px;">
+              <button onclick="copyModalContent()" style="flex:1;padding:11px;background:var(--accent);border:none;border-radius:9px;font-size:14px;font-weight:600;color:white;cursor:pointer;font-family:var(--font-display);transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" id="acct-modal-copy-btn">Copy ✓</button>
+              <button onclick="regenerateModal()" style="padding:11px 18px;background:transparent;border:1px solid var(--border2);border-radius:9px;font-size:13px;color:var(--text2);cursor:pointer;font-family:var(--font-body);transition:all 0.15s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">↺ Regenerate</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /acct-output -->
+  </div>
+
+  <!-- AI CALL COACH -->
+  <div class="page" id="page-coach">
+    <div class="page-header">
+      <div class="page-title">⚡ AI Call Coach</div>
+      <div class="page-sub">Type anything mid-call and get an instant answer</div>
+    </div>
+
+    <div class="card" style="border:1px solid rgba(79,110,247,0.3);margin-bottom:16px;">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Try something like...</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+        <span onclick="fillPrompt(this)" style="cursor:pointer;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg3);">They're happy with Manhattan</span>
+        <span onclick="fillPrompt(this)" style="cursor:pointer;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg3);">No budget right now</span>
+        <span onclick="fillPrompt(this)" style="cursor:pointer;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg3);">How do I ask for the meeting</span>
+        <span onclick="fillPrompt(this)" style="cursor:pointer;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg3);">They said not the right person</span>
+        <span onclick="fillPrompt(this)" style="cursor:pointer;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg3);">What questions should I ask a VP of Supply Chain</span>
+        <span onclick="fillPrompt(this)" style="cursor:pointer;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg3);">They're mid implementation with SAP</span>
+        <span onclick="fillPrompt(this)" style="cursor:pointer;font-size:12px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg3);">Give me the AI story in 2 sentences</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <textarea id="coach-input" placeholder="Type your situation, objection, or question..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();askCoach();}" style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;resize:none;height:60px;line-height:1.6;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
+        <button onclick="askCoach()" id="coach-btn" style="padding:12px 20px;background:var(--accent);border:none;border-radius:10px;font-size:14px;font-weight:600;color:white;cursor:pointer;font-family:var(--font-display);white-space:nowrap;height:60px;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Ask ⚡</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;">Press Enter to send · Shift+Enter for new line</div>
+    </div>
+
+    <div id="coach-output" style="display:none;">
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);">AI Call Coach</div>
+          <div style="display:flex;gap:8px;">
+            <button class="copy-btn" onclick="copyCoach()">Copy</button>
+            <button class="copy-btn" onclick="clearCoach()" style="color:var(--text3);">Clear</button>
+          </div>
+        </div>
+        <div id="coach-response" style="font-size:14px;line-height:1.8;color:var(--text2);white-space:pre-wrap;"></div>
+      </div>
+    </div>
+
+    <div id="coach-history" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="page-header">
+      <div class="page-title">Good morning, Brian ⚡</div>
+      <div class="page-sub">Your WMS BDR command center for the Distribution industry</div>
+    </div>
+
+    <div class="grid3" style="margin-bottom:16px;">
+      <div class="card" style="margin:0; border-left: 3px solid var(--accent);">
+        <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Your Title</div>
+        <div style="font-size:15px; font-weight:500;">Senior WMS BDR</div>
+        <div style="font-size:13px; color:var(--text3); margin-top:2px;">Distribution · Infor</div>
+      </div>
+      <div class="card" style="margin:0; border-left: 3px solid var(--green);">
+        <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">2025 Achievement</div>
+        <div style="font-size:15px; font-weight:500; color:var(--green);">#1 BDR Globally</div>
+        <div style="font-size:13px; color:var(--text3); margin-top:2px;">Circle of Excellence</div>
+      </div>
+      <div class="card" style="margin:0; border-left: 3px solid var(--purple);">
+        <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Gartner Status</div>
+        <div style="font-size:15px; font-weight:500; color:var(--purple);">Magic Quadrant Leader</div>
+        <div style="font-size:13px; color:var(--text3); margin-top:2px;">7 consecutive years</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card" style="margin:0;">
+        <div class="card-title">Quick Access</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div onclick="showPage('acctintel', document.querySelector('[onclick*=acctintel]'))" style="padding:10px 14px; background:linear-gradient(135deg,rgba(124,111,205,0.12),rgba(124,111,205,0.05)); border-radius:8px; cursor:pointer; font-size:14px; color:var(--accent2); border:1px solid rgba(124,111,205,0.3); transition:all 0.15s; font-weight:500;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(124,111,205,0.3)'">🔍 Research a company with AI</div>
+          <div onclick="showPage('scripts', document.querySelector('[onclick*=scripts]'))" style="padding:10px 14px; background:var(--bg3); border-radius:8px; cursor:pointer; font-size:14px; color:var(--text2); border:1px solid var(--border); transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">📞 Cold call opener script</div>
+          <div onclick="showPage('objections', document.querySelector('[onclick*=objections]'))" style="padding:10px 14px; background:var(--bg3); border-radius:8px; cursor:pointer; font-size:14px; color:var(--text2); border:1px solid var(--border); transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">🛡 Handle "we're happy with our WMS"</div>
+          <div onclick="showPage('emails', document.querySelector('[onclick*=emails]'))" style="padding:10px 14px; background:var(--bg3); border-radius:8px; cursor:pointer; font-size:14px; color:var(--text2); border:1px solid var(--border); transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">✉ Cold outreach email template</div>
+          <div onclick="showPage('ai', document.querySelector('[onclick*=ai]'))" style="padding:10px 14px; background:var(--bg3); border-radius:8px; cursor:pointer; font-size:14px; color:var(--text2); border:1px solid var(--border); transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">🤖 AI 30-second story</div>
+        </div>
+      </div>
+      <div class="card" style="margin:0;">
+        <div class="card-title">Your Key Numbers</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
+            <span style="font-size:13px; color:var(--text2);">Promat pipeline generated</span>
+            <span style="font-size:15px; font-weight:600; color:var(--green);">$7–9M</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
+            <span style="font-size:13px; color:var(--text2);">Personal ACV contributed</span>
+            <span style="font-size:15px; font-weight:600; color:var(--green);">$3.3M</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
+            <span style="font-size:13px; color:var(--text2);">Tentative meetings at Promat</span>
+            <span style="font-size:15px; font-weight:600; color:var(--accent2);">29</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;">
+            <span style="font-size:13px; color:var(--text2);">Largest opportunity sourced</span>
+            <span style="font-size:15px; font-weight:600; color:var(--purple);">$6M ACV</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALL SCRIPTS -->
+  <div class="page" id="page-scripts">
+    <div class="page-header">
+      <div class="page-title">Call Scripts & Questions</div>
+      <div class="page-sub">Talk tracks, discovery questions, and booking scripts</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab(this, 'tab-opener')">Cold Opener</button>
+      <button class="tab" onclick="showTab(this, 'tab-gatekeeper')">Gatekeeper</button>
+      <button class="tab" onclick="showTab(this, 'tab-voicemail')">Voicemail</button>
+      <button class="tab" onclick="showTab(this, 'tab-booking')">Booking a Meeting</button>
+      <button class="tab" onclick="showTab(this, 'dq-operations')">Discovery: Operations</button>
+      <button class="tab" onclick="showTab(this, 'dq-technology')">Discovery: Technology</button>
+      <button class="tab" onclick="showTab(this, 'dq-strategy')">Discovery: Strategy</button>
+    </div>
+
+    <div id="tab-opener">
+      <div class="script-block">
+        <div class="script-label">Opening Line</div>
+        "Hey [Name], this is Brian calling from Infor — did I catch you at a bad time?"
+      </div>
+      <div class="script-block">
+        <div class="script-label">Quick Pitch (After They Say Go Ahead)</div>
+        "The reason I'm reaching out is I work with distribution companies to help them modernize their warehouse operations with a Tier 1 WMS. We've been helping companies reduce labor costs and increase throughput with AI-driven automation — and I wanted to see if that's something on the radar for [Company] right now."
+      </div>
+      <div class="script-block">
+        <div class="script-label">Bridge to Discovery</div>
+        "I'm not looking to pitch you today — I just wanted to ask a couple quick questions to see if it's even worth a conversation. Is warehouse technology something your team is evaluating this year?"
+      </div>
+      <div class="script-block">
+        <div class="script-label">If They Say Yes</div>
+        "That's great to hear. I'd love to set up 30 minutes with you and one of our WMS specialists to learn more about what you're looking at and show you what we've been doing for companies like yours. Does [Day] or [Day] work for a quick call?"
+      </div>
+    </div>
+
+    <div id="tab-gatekeeper" style="display:none;">
+      <div class="script-block">
+        <div class="script-label">First Attempt</div>
+        "Hi! I was hoping to reach [Name] — is he/she available?"
+      </div>
+      <div class="script-block">
+        <div class="script-label">If They Ask What It's About</div>
+        "Sure! I'm reaching out from Infor — we work with distribution companies on warehouse technology. I had a quick question for [Name] about something I came across regarding [Company]. Do you know if he/she handles that side of things?"
+      </div>
+      <div class="script-block">
+        <div class="script-label">If They Say He/She Is Busy</div>
+        "No problem at all — is there a better time to reach him/her directly? Or would it be okay if I sent a quick email?"
+      </div>
+      <div class="script-block">
+        <div class="script-label">Get the Email</div>
+        "Perfect — what's the best email to reach [Name] at? I'll keep it short, I promise."
+      </div>
+    </div>
+
+    <div id="tab-voicemail" style="display:none;">
+      <div class="script-block">
+        <div class="script-label">Short Voicemail (Under 20 seconds)</div>
+        "Hey [Name], this is Brian from Infor — I'm reaching out because I work with distribution companies on warehouse technology and I had a quick question for you. I'll shoot you an email too, but feel free to call me back at [number]. Talk soon!"
+      </div>
+      <div class="script-block">
+        <div class="script-label">Follow-Up Voicemail</div>
+        "Hey [Name], Brian again from Infor — I know you're busy, I'll keep this short. I've left a couple messages and sent an email about how we've been helping distributors modernize their warehouse operations. If now's not the right time that's totally fine — just let me know and I'll follow up down the road. You can reach me at [number]. Thanks!"
+      </div>
+    </div>
+
+    <div id="tab-booking" style="display:none;">
+      <div class="script-block">
+        <div class="script-label">Soft Meeting Ask</div>
+        "I don't want to take up too much of your time today — but based on what you're sharing, I think it'd be worth a 30-minute call with one of our WMS specialists to go a little deeper. Would you be open to that?"
+      </div>
+      <div class="script-block">
+        <div class="script-label">Give Two Options</div>
+        "I have availability [Day] morning or [Day] afternoon — which works better for you?"
+      </div>
+      <div class="script-block">
+        <div class="script-label">If They Hesitate</div>
+        "Totally understand — no pressure at all. Even if the timing isn't right, would it be okay if I followed up with you in a few weeks? I want to make sure we stay on your radar."
+      </div>
+      <div class="script-block">
+        <div class="script-label">Confirm & Close</div>
+        "Perfect — I'll send a calendar invite right now with all the details. And if anything comes up, just let me know and we'll reschedule. Looking forward to it!"
+      </div>
+    </div>
+    <div id="dq-operations">
+      <div class="question-item">
+        <div class="q-num">1</div>
+        <div>
+          <div class="q-text">"How many warehouse locations are you currently operating out of, and how many SKUs are you managing across those facilities?"</div>
+          <div class="q-goal">Goal: Understand scale and complexity</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">2</div>
+        <div>
+          <div class="q-text">"What does your current picking and fulfillment process look like today — are you doing paper-based, RF scanning, voice?"</div>
+          <div class="q-goal">Goal: Identify how modern their operations are</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">3</div>
+        <div>
+          <div class="q-text">"Where are your biggest bottlenecks in the warehouse right now? What's slowing your team down the most?"</div>
+          <div class="q-goal">Goal: Surface the core pain point</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">4</div>
+        <div>
+          <div class="q-text">"How are you managing labor today — do you have visibility into productivity at the individual employee level?"</div>
+          <div class="q-goal">Goal: Open the door to labor management conversation</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">5</div>
+        <div>
+          <div class="q-text">"Are you currently integrating with any robotics or automated material handling equipment in your DCs?"</div>
+          <div class="q-goal">Goal: Identify automation opportunity</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dq-technology" style="display:none;">
+      <div class="question-item">
+        <div class="q-num">1</div>
+        <div>
+          <div class="q-text">"What WMS are you currently running, and how long have you been on it?"</div>
+          <div class="q-goal">Goal: Identify competitor and contract window</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">2</div>
+        <div>
+          <div class="q-text">"How well does your current system integrate with your ERP and other platforms in your tech stack?"</div>
+          <div class="q-goal">Goal: Uncover integration pain</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">3</div>
+        <div>
+          <div class="q-text">"Is your current WMS cloud-based or on-premise? Have you had conversations about moving to the cloud?"</div>
+          <div class="q-goal">Goal: Identify cloud migration opportunity</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">4</div>
+        <div>
+          <div class="q-text">"Are you leveraging any AI or machine learning capabilities in your warehouse today?"</div>
+          <div class="q-goal">Goal: Open AI conversation</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">5</div>
+        <div>
+          <div class="q-text">"How satisfied is your team with the real-time visibility you have into inventory and order status right now?"</div>
+          <div class="q-goal">Goal: Surface visibility gaps</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dq-strategy" style="display:none;">
+      <div class="question-item">
+        <div class="q-num">1</div>
+        <div>
+          <div class="q-text">"Is warehouse technology on your roadmap for 2026? Is there a project or initiative underway?"</div>
+          <div class="q-goal">Goal: Qualify timing and urgency</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">2</div>
+        <div>
+          <div class="q-text">"Who else is involved in decisions like this — is it primarily you, or are there other stakeholders we should loop in?"</div>
+          <div class="q-goal">Goal: Map the buying committee</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">3</div>
+        <div>
+          <div class="q-text">"If you were to move forward with a new WMS, what would success look like for you in year one?"</div>
+          <div class="q-goal">Goal: Understand their definition of ROI</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">4</div>
+        <div>
+          <div class="q-text">"Have you evaluated other WMS vendors recently, or are you earlier in the process?"</div>
+          <div class="q-goal">Goal: Understand where they are in the buying cycle</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-num">5</div>
+        <div>
+          <div class="q-text">"What's driving the urgency — is there a specific event, deadline, or pain point that's putting this on the agenda now?"</div>
+          <div class="q-goal">Goal: Find the trigger event</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- OBJECTIONS -->  <!-- OBJECTIONS -->
+  <div class="page" id="page-objections">
+    <div class="page-header">
+      <div class="page-title">Objection Handling</div>
+      <div class="page-sub">Common brush-offs and how to handle them</div>
+    </div>
+
+    <input class="search-bar" type="text" placeholder="Search objections..." oninput="filterObjections(this.value)">
+
+    <div id="objection-list">
+      <div class="objection-item" data-text="happy current wms manhattan blue yonder">
+        <div class="objection-q">💬 "We're happy with our current WMS."</div>
+        <div class="rebuttal-label">Your Rebuttal</div>
+        <div class="objection-a">"That's great to hear — I'm not here to disrupt what's working. I'm just curious, is your current system doing anything around AI-driven pick path optimization or predictive slotting? Those are areas where we've been seeing really meaningful results for distributors. Would you be open to a quick look just to benchmark where you stand?"</div>
+      </div>
+      <div class="objection-item" data-text="signed contract locked in">
+        <div class="objection-q">💬 "We just signed a contract with our current vendor."</div>
+        <div class="rebuttal-label">Your Rebuttal</div>
+        <div class="objection-a">"Totally understand — timing is everything. When does that contract come up for renewal? I'd love to stay on your radar so when that conversation does happen, you have Infor in the mix. Would it be okay if I followed up with you closer to that window?"</div>
+      </div>
+      <div class="objection-item" data-text="budget no money">
+        <div class="objection-q">💬 "We don't have budget for this right now."</div>
+        <div class="rebuttal-label">Your Rebuttal</div>
+        <div class="objection-a">"Completely understand — and honestly that's where the ROI conversation becomes even more important. A lot of our customers found that Infor WMS paid for itself within the first year through labor savings and throughput gains alone. Would you be open to a 30-minute call just to understand what that could look like for your operation?"</div>
+      </div>
+      <div class="objection-item" data-text="not the right person decision maker">
+        <div class="objection-q">💬 "That's not my decision — you'd need to talk to someone else."</div>
+        <div class="rebuttal-label">Your Rebuttal</div>
+        <div class="objection-a">"I appreciate you being upfront — I'm not trying to go around anyone. Can I ask though, from your perspective on the operations side, have you felt any pain points with the current setup? I ask because having someone like you in the conversation who actually lives in the warehouse every day is really valuable. Would you be open to a quick call just to explore it together?"</div>
+      </div>
+      <div class="objection-item" data-text="send information email">
+        <div class="objection-q">💬 "Just send me some info and I'll take a look."</div>
+        <div class="rebuttal-label">Your Rebuttal</div>
+        <div class="objection-a">"Absolutely — I'll send something over. To make sure I send you the most relevant information, can I ask what your biggest challenge in the warehouse is right now? That way I can tailor it to what matters most to you rather than sending a generic overview."</div>
+      </div>
+      <div class="objection-item" data-text="not looking evaluating timing bad">
+        <div class="objection-q">💬 "We're not looking at WMS right now — bad timing."</div>
+        <div class="rebuttal-label">Your Rebuttal</div>
+        <div class="objection-a">"Totally fair — when do you think the timing would be better? I ask because a lot of companies we work with said the same thing, and then something happened — a big DC expansion, a labor issue, a missed shipment — that moved it up on the priority list. I'd rather be a resource for you before that happens than after."</div>
+      </div>
+      <div class="objection-item" data-text="too small size">
+        <div class="objection-q">💬 "We're probably too small for an enterprise WMS."</div>
+        <div class="rebuttal-label">Your Rebuttal</div>
+        <div class="objection-a">"That's actually a really common misconception — Infor WMS is built to scale, which means it works really well for companies at your stage too. Some of our best-fit customers started with two or three DCs and grew into much larger operations on the same platform. Would it make sense to at least have a conversation and see if there's a fit?"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMAILS -->
+  <div class="page" id="page-emails">
+    <div class="page-header">
+      <div class="page-title">Email Templates</div>
+      <div class="page-sub">Cold outreach and follow-up emails ready to personalize and send</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab(this, 'tab-cold-emails')">Cold Outreach</button>
+      <button class="tab" onclick="showTab(this, 'tab-followup-emails')">Follow-Ups</button>
+    </div>
+
+    <div id="tab-cold-emails">
+
+    <div class="email-template">
+      <div class="email-header">
+        <div>
+          <div class="email-type">Cold Outreach — Standard</div>
+          <div class="email-subject">Subject: Is WMS on the roadmap for [Company]?</div>
+        </div>
+        <button class="copy-btn" onclick="copyEmail(this, 'email1')">Copy</button>
+      </div>
+      <div class="email-body" id="email1">Hi [Name],
+
+I hope you're having a great week!
+
+I wanted to reach out because I work with distribution companies to help them modernize their warehouse operations — and [Company] caught my attention.
+
+I was curious whether a Tier 1 WMS is on the roadmap for your team this year?
+
+Infor WMS — a Gartner Magic Quadrant Leader for 7 consecutive years — has been helping distributors like yours reduce labor costs, improve throughput, and integrate advanced automation seamlessly across their operations.
+
+Would you be open to a quick 30-minute call to explore further?
+
+Looking forward to connecting!
+
+Brian</div>
+    </div>
+
+    <div class="email-template">
+      <div class="email-header">
+        <div>
+          <div class="email-type">Cold Outreach — Trigger Event</div>
+          <div class="email-subject">Subject: [Company]'s [DC Expansion / Investment] — worth a conversation?</div>
+        </div>
+        <button class="copy-btn" onclick="copyEmail(this, 'email2')">Copy</button>
+      </div>
+      <div class="email-body" id="email2">Hi [Name],
+
+I came across [Company]'s [recent news/investment/expansion] and wanted to reach out.
+
+As you scale your operations, I was curious whether a Tier 1 WMS is on the roadmap to support that growth?
+
+Infor WMS — a Gartner Magic Quadrant Leader for 7 consecutive years — has helped distributors enhance efficiencies, incorporate advanced automation, and gain real-time visibility into inventory and labor. It also integrates seamlessly with existing ERP systems.
+
+Would you be open to a quick 30-minute call to explore what that could look like for [Company]?
+
+Looking forward to connecting!
+
+Brian</div>
+    </div>
+
+    <div class="email-template">
+      <div class="email-header">
+        <div>
+          <div class="email-type">Cold Outreach — LinkedIn Connection</div>
+          <div class="email-subject">Subject: Following up from LinkedIn</div>
+        </div>
+        <button class="copy-btn" onclick="copyEmail(this, 'email3')">Copy</button>
+      </div>
+      <div class="email-body" id="email3">Hi [Name],
+
+Glad we could connect on LinkedIn!
+
+I'm Brian, part of the WMS team here at Infor. I work specifically with distribution companies to help them modernize their warehouse operations with a Tier 1, AI-driven WMS.
+
+I wanted to reach out and see if warehouse technology is something on your radar at [Company] this year. Even if the timing isn't right, I'd love to be a resource for you.
+
+Would you be open to a quick 30-minute conversation?
+
+Looking forward to it!
+
+Brian</div>
+    </div>
+  </div>
+
+    <div id="tab-followup-emails" style="display:none;">
+    <div class="email-template">
+      <div class="email-header">
+        <div>
+          <div class="email-type">Follow-Up #1 — 3-5 Days After Initial</div>
+          <div class="email-subject">Subject: Re: [Original Subject]</div>
+        </div>
+        <button class="copy-btn" onclick="copyEmail(this, 'fu1')">Copy</button>
+      </div>
+      <div class="email-body" id="fu1">Hi [Name],
+
+I wanted to follow up on my last email in case it got buried!
+
+I know things get busy — I just wanted to make sure you had the chance to see my note about how Infor WMS has been helping distribution companies like yours modernize their warehouse operations.
+
+Would you be open to a quick 30-minute call to explore if there's a fit?
+
+Brian</div>
+    </div>
+
+    <div class="email-template">
+      <div class="email-header">
+        <div>
+          <div class="email-type">Follow-Up #2 — 1 Week Later</div>
+          <div class="email-subject">Subject: One more try — [Company] + Infor WMS</div>
+        </div>
+        <button class="copy-btn" onclick="copyEmail(this, 'fu2')">Copy</button>
+      </div>
+      <div class="email-body" id="fu2">Hi [Name],
+
+I know this is my third touch — I'll keep it short.
+
+I genuinely believe there's an opportunity here for [Company] and I'd hate for it to get lost in the shuffle. Would you have 30 minutes this week or next to connect?
+
+If the timing isn't right, just let me know and I'll follow up down the road. No pressure at all.
+
+Brian</div>
+    </div>
+
+    <div class="email-template">
+      <div class="email-header">
+        <div>
+          <div class="email-type">Post-Event Follow-Up (MODEX etc.)</div>
+          <div class="email-subject">Subject: Great connecting at [Event]!</div>
+        </div>
+        <button class="copy-btn" onclick="copyEmail(this, 'fu3')">Copy</button>
+      </div>
+      <div class="email-body" id="fu3">Hi [Name],
+
+It was great connecting with you at [Event]!
+
+I wanted to follow up on our conversation and see if you'd be open to scheduling some time to go a little deeper on what we discussed. I think there's a real opportunity to explore how Infor WMS could support what [Company] is working toward.
+
+Would you have 30 minutes in the coming weeks to reconnect?
+
+Looking forward to it!
+
+Brian</div>
+    </div>
+
+    </div>
+  </div>
+
+  <!-- LIVE INTENT FEED -->
+  <div class="page" id="page-intentfeed">
+    <div class="page-header">
+      <div class="page-title">📡 Live Intent Feed</div>
+      <div class="page-sub">Paste your latest ZoomInfo WMS intent results and they'll format automatically</div>
+    </div>
+
+    <div class="card" style="border:1px solid rgba(124,111,205,0.25);margin-bottom:16px;">
+      <div class="card-title">How to Use</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--accent-glow);border:1px solid rgba(124,111,205,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent2);flex-shrink:0;">1</div>
+          <div style="font-size:13px;color:var(--text2);">Go to your Claude chat and type <span style="background:var(--bg4);padding:2px 8px;border-radius:4px;font-family:monospace;font-size:12px;color:var(--accent2);">Pull my WMS intent list</span></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--accent-glow);border:1px solid rgba(124,111,205,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent2);flex-shrink:0;">2</div>
+          <div style="font-size:13px;color:var(--text2);">Copy the results Claude gives you</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:var(--bg3);border-radius:8px;">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--accent-glow);border:1px solid rgba(124,111,205,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent2);flex-shrink:0;">3</div>
+          <div style="font-size:13px;color:var(--text2);">Paste below and hit <strong>Format Feed</strong> — your list formats automatically</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">Paste Intent Data</div>
+      <textarea id="intent-paste" placeholder="Paste your intent results from Claude here...&#10;&#10;Example format:&#10;Ashley Furniture Industries | Score 100 | May 2 | Audience B | 1 spike&#10;Graybar | Score 99 | May 2 | Audience A | 2 spikes&#10;McLane | Score 100 | Apr 18 | Audience A | 1 spike&#10;&#10;Or just paste the raw text Claude gives you — the tool will parse it automatically." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--text);font-family:var(--font-body);outline:none;resize:vertical;min-height:160px;line-height:1.7;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      <div style="display:flex;gap:10px;margin-top:12px;align-items:center;">
+        <input id="feed-date" type="date" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:var(--font-body);outline:none;">
+        <button onclick="formatFeed()" style="flex:1;padding:11px;background:var(--accent);border:none;border-radius:8px;font-size:14px;font-weight:600;color:white;cursor:pointer;font-family:var(--font-display);transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Format Feed ⚡</button>
+        <button onclick="clearFeed()" class="copy-btn" style="color:var(--red);border-color:rgba(201,64,64,0.3);">Clear</button>
+      </div>
+    </div>
+
+    <div id="feed-output" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);">📋 Today's Priority List</div>
+        <div id="feed-timestamp" style="font-size:12px;color:var(--text3);"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div style="background:rgba(45,158,107,0.08);border:1px solid rgba(45,158,107,0.2);border-radius:10px;padding:14px;text-align:center;">
+          <div id="feed-count-hot" style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--green);">0</div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">🔥 Call Today</div>
+        </div>
+        <div style="background:rgba(200,124,42,0.08);border:1px solid rgba(200,124,42,0.2);border-radius:10px;padding:14px;text-align:center;">
+          <div id="feed-count-warm" style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--amber);">0</div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">⚡ Follow Up</div>
+        </div>
+        <div style="background:rgba(124,111,205,0.08);border:1px solid rgba(124,111,205,0.2);border-radius:10px;padding:14px;text-align:center;">
+          <div id="feed-count-total" style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--accent2);">0</div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px;">Total Accounts</div>
+        </div>
+      </div>
+
+      <div id="feed-list"></div>
+    </div>
+
+    <div id="feed-history" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- AI STORY -->
+  <div class="page" id="page-ai">
+    <div class="page-header">
+      <div class="page-title">AI Story & Stats</div>
+      <div class="page-sub">Your 30-60 second AI talk track for the booth and calls</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">30-Second AI Story</div>
+      <div class="script-block" style="border-left-color: var(--purple); font-size:15px; line-height:1.8;">
+        "20 years ago a barcode scanner was cutting edge in a warehouse. Today we have drones taking inventory and AI optimizing every pick path on the floor — and that jump happened in under 5 years. That's the pace we're moving at. Infor WMS is already doing this — AI-driven pick path optimization, predictive slotting, advanced cartonization. Endries used our AI to save 9,000 hours a year and eliminate an entire shift without impacting service levels. The question is — can your current warehouse keep up with where AI is going in the next 4 years?"
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="ai-stat">
+        <div class="ai-number">15–22%</div>
+        <div class="ai-label">Reduction in picker travel time via predictive slotting</div>
+      </div>
+      <div class="ai-stat">
+        <div class="ai-number">9,000+</div>
+        <div class="ai-label">Hours saved annually at Endries via AI parts matching</div>
+      </div>
+      <div class="ai-stat">
+        <div class="ai-number">7 Years</div>
+        <div class="ai-label">Consecutive Gartner Magic Quadrant Leader</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="card">
+      <div class="card-title">AI Capabilities to Reference</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--bg3); border-radius:8px; border:1px solid var(--border);">
+          <span style="color:var(--accent2); font-size:18px;">⚡</span>
+          <div><div style="font-size:14px; font-weight:500; margin-bottom:3px;">AI Pick Path Optimization</div><div style="font-size:13px; color:var(--text2);">Maps the smartest route for pickers based on aisle width, equipment type, and turning radius</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--bg3); border-radius:8px; border:1px solid var(--border);">
+          <span style="color:var(--green); font-size:18px;">📦</span>
+          <div><div style="font-size:14px; font-weight:500; margin-bottom:3px;">Predictive Slotting</div><div style="font-size:13px; color:var(--text2);">Learns which products move fast and keeps them in the most accessible locations — 15-22% travel time reduction</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--bg3); border-radius:8px; border:1px solid var(--border);">
+          <span style="color:var(--amber); font-size:18px;">🤖</span>
+          <div><div style="font-size:14px; font-weight:500; margin-bottom:3px;">Advanced Cartonization</div><div style="font-size:13px; color:var(--text2);">AI determines optimal packing into fewer right-sized boxes — reduces shipping costs and supports sustainability</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--bg3); border-radius:8px; border:1px solid var(--border);">
+          <span style="color:var(--purple); font-size:18px;">🧠</span>
+          <div><div style="font-size:14px; font-weight:500; margin-bottom:3px;">GenAI Operational Intelligence</div><div style="font-size:13px; color:var(--text2);">Faster insights for supervisors, streamlined shift startup, labor and revenue forecasting</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--bg3); border-radius:8px; border:1px solid var(--border);">
+          <span style="color:var(--teal); font-size:18px;">🚁</span>
+          <div><div style="font-size:14px; font-weight:500; margin-bottom:3px;">Drone Inventory</div><div style="font-size:13px; color:var(--text2);">Autonomous drone inventory counting — already live at East Coast Warehouse</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFERENCES -->
+  <div class="page" id="page-references">
+    <div class="page-header">
+      <div class="page-title">Customer References</div>
+      <div class="page-sub">Real stories with real numbers to use in conversations</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+        <div>
+          <div style="font-family:var(--font-display); font-size:17px; font-weight:700;">Endries International</div>
+          <div style="font-size:12px; color:var(--text3); margin-top:2px;">Industrial Fastener Distribution</div>
+        </div>
+        <span class="tag tag-green">Strong Reference</span>
+      </div>
+      <div class="grid2" style="margin-bottom:12px;">
+        <div style="background:var(--bg3); border-radius:8px; padding:12px; text-align:center;">
+          <div style="font-size:22px; font-weight:700; color:var(--green); font-family:var(--font-display);">40%</div>
+          <div style="font-size:12px; color:var(--text3); margin-top:2px;">Productivity increase in warehouse</div>
+        </div>
+        <div style="background:var(--bg3); border-radius:8px; padding:12px; text-align:center;">
+          <div style="font-size:22px; font-weight:700; color:var(--accent2); font-family:var(--font-display);">9,000+</div>
+          <div style="font-size:12px; color:var(--text3); margin-top:2px;">Hours saved annually via AI</div>
+        </div>
+      </div>
+      <div class="script-block" style="margin-bottom:0;">
+        <div class="script-label">How to Reference</div>
+        "Endries is a great example — they saw a 40% productivity increase and were able to eliminate an entire shift without impacting service levels. On the AI side, their parts matching process that used to take up to 30 minutes per search is now automated — saving over 9,000 hours a year."
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+        <div>
+          <div style="font-family:var(--font-display); font-size:17px; font-weight:700;">Gellert Global</div>
+          <div style="font-size:12px; color:var(--text3); margin-top:2px;">Specialty Food Distribution</div>
+        </div>
+        <span class="tag tag-blue">Food Industry</span>
+      </div>
+      <div class="script-block" style="margin-bottom:0;">
+        <div class="script-label">How to Reference</div>
+        "For food distribution specifically — Gellert Global is a great example of a company using Infor WMS to enhance efficiencies and modernize their DC operations. They're in a similar space and have seen strong results on the operational side."
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+        <div>
+          <div style="font-family:var(--font-display); font-size:17px; font-weight:700;">EVA</div>
+          <div style="font-size:12px; color:var(--text3); margin-top:2px;">Health & Beauty Retail Distribution</div>
+        </div>
+        <span class="tag tag-purple">Accuracy Win</span>
+      </div>
+      <div class="grid2" style="margin-bottom:12px;">
+        <div style="background:var(--bg3); border-radius:8px; padding:12px; text-align:center;">
+          <div style="font-size:22px; font-weight:700; color:var(--green); font-family:var(--font-display);">20%</div>
+          <div style="font-size:12px; color:var(--text3); margin-top:2px;">Productivity increase in order picking</div>
+        </div>
+        <div style="background:var(--bg3); border-radius:8px; padding:12px; text-align:center;">
+          <div style="font-size:22px; font-weight:700; color:var(--accent2); font-family:var(--font-display);">4x</div>
+          <div style="font-size:12px; color:var(--text3); margin-top:2px;">Reduction in picking errors</div>
+        </div>
+      </div>
+      <div class="script-block" style="margin-bottom:0;">
+        <div class="script-label">How to Reference</div>
+        "EVA saw a 20% productivity increase in order picking and a four-fold reduction in errors after implementing Infor WMS. If accuracy and throughput are pain points, that's a really relevant story."
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+        <div>
+          <div style="font-family:var(--font-display); font-size:17px; font-weight:700;">Fliway</div>
+          <div style="font-size:12px; color:var(--text3); margin-top:2px;">3PL — New Zealand's Largest</div>
+        </div>
+        <span class="tag tag-amber">Scale Win</span>
+      </div>
+      <div class="script-block" style="margin-bottom:0;">
+        <div class="script-label">How to Reference</div>
+        "Fliway — New Zealand's largest specialist 3PL — is managing a 50% increase in daily demand on Infor's cloud-based WMS. If scaling capacity is on the agenda, that's a great story to reference."
+      </div>
+    </div>
+  </div>
+
+  <!-- PERSONA PROFILES -->
+
+  <!-- TALK TRACK BUILDER -->
+
+  <!-- LINKEDIN NOTES -->
+
+  <!-- CALL NOTES -->
+  <!-- EVENT OUTREACH -->
+  <div class="page" id="page-events">
+    <div class="page-header">
+      <div class="page-title">🎪 Event Outreach Generator</div>
+      <div class="page-sub">Pre-event and post-event outreach for any marketing event — personalized by persona</div>
+    </div>
+
+    <div class="card" style="border:1px solid rgba(124,111,205,0.25);margin-bottom:16px;">
+      <div class="grid2" style="gap:14px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;display:block;margin-bottom:8px;">Event Name *</label>
+          <input id="ev-name" type="text" placeholder="e.g. TUG Conference Nashville, ProMat 2026..." style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'" />
+        </div>
+        <div>
+          <label style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;display:block;margin-bottom:8px;">Booth / Location</label>
+          <input id="ev-booth" type="text" placeholder="e.g. Booth #1234, Center Island, Hall B..." style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'" />
+        </div>
+      </div>
+      <div class="grid2" style="gap:14px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;display:block;margin-bottom:8px;">Event Date (optional)</label>
+          <input id="ev-date" type="text" placeholder="e.g. June 10-12, 2026" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'" />
+        </div>
+        <div>
+          <label style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;display:block;margin-bottom:8px;">Target Persona</label>
+          <select id="ev-persona" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+            <option value="any">Any / General</option>
+            <option value="wm">Warehouse Manager / Director</option>
+            <option value="sc">VP / Director of Supply Chain</option>
+            <option value="ops">VP / Director of Operations</option>
+            <option value="it">VP / Director of IT</option>
+            <option value="coo">COO / Chief Operating Officer</option>
+            <option value="cfo">CFO / Finance Leader</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;display:block;margin-bottom:10px;">Outreach Type</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="ev-type-btns">
+          <button class="ev-type-btn active" data-val="pre_email" onclick="selectEvType(this)">✉ Pre-Event Email</button>
+          <button class="ev-type-btn" data-val="pre_li" onclick="selectEvType(this)">💼 Pre-Event LinkedIn</button>
+          <button class="ev-type-btn" data-val="pre_call" onclick="selectEvType(this)">📞 Pre-Event Call Script</button>
+          <button class="ev-type-btn" data-val="post_email" onclick="selectEvType(this)">✉ Post-Event Email</button>
+          <button class="ev-type-btn" data-val="post_li" onclick="selectEvType(this)">💼 Post-Event LinkedIn</button>
+          <button class="ev-type-btn" data-val="post_nv" onclick="selectEvType(this)">📭 Missed Connection Email</button>
+          <button class="ev-type-btn" data-val="booth_followup" onclick="selectEvType(this)">🎯 Booth Visit Follow-Up</button>
+        </div>
+        <input type="hidden" id="ev-type" value="pre_email" />
+      </div>
+      <button onclick="generateEventOutreach()" id="ev-btn" style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:10px;font-size:15px;font-weight:700;color:white;cursor:pointer;font-family:var(--font-display);transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Generate Outreach ⚡</button>
+    </div>
+
+    <div id="ev-output" style="display:none;">
+      <div id="ev-loading" style="text-align:center;padding:36px;display:none;">
+        <div style="font-size:24px;margin-bottom:10px;">✍️</div>
+        <div style="font-size:14px;color:var(--text2);">Generating personalized outreach...</div>
+      </div>
+      <div id="ev-content" style="display:none;">
+        <div class="card" style="border-left:3px solid var(--accent);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div id="ev-result-label" style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--text);"></div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="regenerateEventOutreach()" style="padding:8px 14px;background:transparent;border:1px solid var(--border2);border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;font-family:var(--font-body);">↺ Regenerate</button>
+              <button onclick="copyEventOutreach()" id="ev-copy-btn" style="padding:8px 18px;background:var(--accent);border:none;border-radius:8px;font-size:13px;font-weight:600;color:white;cursor:pointer;font-family:var(--font-display);">Copy ✓</button>
+            </div>
+          </div>
+          <div id="ev-result-subject" style="font-size:12px;color:var(--accent2);font-weight:600;margin-bottom:8px;display:none;"></div>
+          <div id="ev-result-body" style="font-size:14px;line-height:1.9;color:var(--text2);white-space:pre-wrap;background:var(--bg3);border-radius:10px;padding:16px 18px;border:1px solid var(--border);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALL NOTES -->
+  <div class="page" id="page-notes">
+    <div class="page-header">
+      <div class="page-title">Call Notes Scratchpad</div>
+      <div class="page-sub">Jot notes during live calls — saves automatically in your browser</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="card-title" style="margin:0;">Active Call</div>
+        <div style="display:flex;gap:8px;">
+          <button class="copy-btn" onclick="copyNotes()">Copy Notes</button>
+          <button class="copy-btn" onclick="saveNote()" style="color:var(--accent2);border-color:rgba(79,110,247,0.3);">Save to Log</button>
+          <button class="copy-btn" onclick="clearNotes()" style="color:var(--red);border-color:rgba(239,68,68,0.3);">Clear</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Prospect Name</div>
+          <input id="note-name" type="text" placeholder="e.g. John Smith" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Company</div>
+          <input id="note-company" type="text" placeholder="e.g. Acme Distribution" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Call Outcome</div>
+          <select id="note-outcome" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;">
+            <option value="">Select outcome...</option>
+            <option value="meeting">Meeting Booked</option>
+            <option value="callback">Call Back Requested</option>
+            <option value="not-interested">Not Interested</option>
+            <option value="no-answer">No Answer</option>
+            <option value="voicemail">Left Voicemail</option>
+            <option value="follow-up">Follow Up Later</option>
+            <option value="wrong-person">Wrong Person</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Notes</div>
+      <textarea id="note-text" placeholder="Jot your notes here during the call — pain points, next steps, what they said, follow-up date..." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;resize:vertical;min-height:160px;line-height:1.7;"></textarea>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Pain Points Identified</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;" id="pain-tags">
+            <span onclick="togglePainTag(this,'Labor costs')" class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);">Labor costs</span>
+            <span onclick="togglePainTag(this,'Pick accuracy')" class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);">Pick accuracy</span>
+            <span onclick="togglePainTag(this,'Visibility')" class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);">Visibility</span>
+            <span onclick="togglePainTag(this,'ERP integration')" class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);">ERP integration</span>
+            <span onclick="togglePainTag(this,'Automation')" class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);">Automation</span>
+            <span onclick="togglePainTag(this,'Scalability')" class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);">Scalability</span>
+            <span onclick="togglePainTag(this,'Legacy system')" class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);">Legacy system</span>
+            <span onclick="togglePainTag(this,'No real-time data')" class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);">No real-time data</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Next Step</div>
+          <input id="note-nextstep" type="text" placeholder="e.g. Send follow-up email by Friday" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;margin-bottom:8px;">
+          <input id="note-followdate" type="date" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="card-title" style="margin:0;">Call Log</div>
+        <button class="copy-btn" onclick="clearLog()" style="color:var(--red);border-color:rgba(239,68,68,0.3);">Clear Log</button>
+      </div>
+      <div id="call-log">
+        <div style="text-align:center;padding:24px;color:var(--text3);font-size:13px;">No calls logged yet — save a note to see it here</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+function showTab(el, tabId) {
+  const parent = el.closest('.page');
+  parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const allTabs = parent.querySelectorAll("[id^=\"tab-\"], [id^=\"dq-\"], [id^=\"p-\"], [id^=\"li-\"]");
+  allTabs.forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = 'block';
+}
+
+function copyEmail(btn, id) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function filterObjections(val) {
+  const items = document.querySelectorAll('.objection-item');
+  items.forEach(item => {
+    const text = (item.dataset.text + ' ' + item.innerText).toLowerCase();
+    item.style.display = text.includes(val.toLowerCase()) ? 'block' : 'none';
+  });
+}
+
+function formatFeed() {
+  const raw = document.getElementById('intent-paste').value.trim();
+  if (!raw) { alert('Paste your intent data first!'); return; }
+
+  const dateInput = document.getElementById('feed-date').value;
+  const today = dateInput ? new Date(dateInput).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  // Parse lines — look for company names and scores
+  const lines = raw.split('\n').filter(l => l.trim().length > 2);
+  const accounts = [];
+
+  // Known distribution/relevant companies from ZoomInfo pulls
+  const relevantKeywords = ['distribution', 'logistics', '3pl', 'supply', 'warehouse', 'industrial', 'wholesale', 'manufacturing', 'furniture', 'food', 'grocery', 'electrical', 'plumbing', 'fastener', 'equipment', 'parts', 'auto', 'medical', 'pharma', 'retail', 'consumer'];
+
+  lines.forEach(line => {
+    // Try to extract score
+    const scoreMatch = line.match(/[Ss]core\s*:?\s*(\d+)|(\d+)\s*\/\s*100|\*\*(\d+)\*\*/);
+    const score = scoreMatch ? parseInt(scoreMatch[1] || scoreMatch[2] || scoreMatch[3]) : null;
+
+    // Try to extract company name — look for bold markdown or pipe-separated
+    let company = '';
+    const boldMatch = line.match(/\*\*([^*]+)\*\*/);
+    const pipeMatch = line.split('|')[0];
+
+    if (boldMatch) company = boldMatch[1].trim();
+    else if (pipeMatch && pipeMatch.trim().length > 2) company = pipeMatch.trim();
+    else {
+      // Try first word group before common keywords
+      const cleaned = line.replace(/score|signal|audience|spike|intent|may|apr|mar|jan|feb|jun|jul|aug|sep|oct|nov|dec|\d{4}|\d+\/\d+/gi, '').trim();
+      company = cleaned.split(/[|·\-–]/)[0].trim();
+    }
+
+    // Extract audience strength
+    const audienceMatch = line.match(/[Aa]udience\s*:?\s*([A-F])|([A-F])\s*(?:audience|strength)/i);
+    const audience = audienceMatch ? (audienceMatch[1] || audienceMatch[2]).toUpperCase() : null;
+
+    // Extract spikes
+    const spikeMatch = line.match(/(\d+)\s*spike/i);
+    const spikes = spikeMatch ? parseInt(spikeMatch[1]) : null;
+
+    // Extract date
+    const dateMatch = line.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d+/i);
+    const signalDate = dateMatch ? dateMatch[0] : null;
+
+    if (company && company.length > 1 && company.length < 60) {
+      accounts.push({ company, score, audience, spikes, signalDate });
+    }
+  });
+
+  // Sort by score desc
+  accounts.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  const hot = accounts.filter(a => a.score >= 95);
+  const warm = accounts.filter(a => a.score >= 75 && a.score < 95);
+  const rest = accounts.filter(a => !a.score || a.score < 75);
+
+  document.getElementById('feed-count-hot').textContent = hot.length;
+  document.getElementById('feed-count-warm').textContent = warm.length;
+  document.getElementById('feed-count-total').textContent = accounts.length;
+  document.getElementById('feed-timestamp').textContent = 'Pulled: ' + today;
+
+  const list = document.getElementById('feed-list');
+  list.innerHTML = '';
+
+  const renderSection = (items, label, color, bgColor, borderColor) => {
+    if (items.length === 0) return;
+    const section = document.createElement('div');
+    section.style.cssText = 'margin-bottom:16px;';
+    section.innerHTML = `<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:${color};margin-bottom:8px;">${label}</div>`;
+
+    items.forEach(a => {
+      const audienceLabel = { A: 'Largest', B: 'Large', C: 'Medium', D: 'Small', E: 'Smallest', F: 'Minimal' }[a.audience] || '';
+      const card = document.createElement('div');
+      card.style.cssText = `background:${bgColor};border:1px solid ${borderColor};border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:12px;`;
+      card.innerHTML = `
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">${a.company}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${a.signalDate ? `<span style="font-size:11px;color:var(--text3);">📅 ${a.signalDate}</span>` : ''}
+            ${audienceLabel ? `<span style="font-size:11px;color:var(--text3);">👥 ${audienceLabel} audience</span>` : ''}
+            ${a.spikes ? `<span style="font-size:11px;color:var(--text3);">📈 ${a.spikes} spike${a.spikes > 1 ? 's' : ''}</span>` : ''}
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          ${a.score ? `<div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:${color};">${a.score}</div><div style="font-size:10px;color:var(--text3);">score</div>` : ''}
+        </div>`;
+      section.appendChild(card);
+    });
+    list.appendChild(section);
+  };
+
+  renderSection(hot, '🔥 Call Today', 'var(--green)', 'rgba(45,158,107,0.06)', 'rgba(45,158,107,0.15)');
+  renderSection(warm, '⚡ Follow Up This Week', 'var(--amber)', 'rgba(200,124,42,0.06)', 'rgba(200,124,42,0.15)');
+  renderSection(rest, '📋 Monitor', 'var(--text3)', 'var(--bg3)', 'var(--border)');
+
+  document.getElementById('feed-output').style.display = 'block';
+  document.getElementById('feed-output').scrollIntoView({ behavior: 'smooth' });
+
+  // Save to history
+  const history = document.getElementById('feed-history');
+  if (accounts.length > 0) {
+    const snap = document.createElement('div');
+    snap.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px;';
+    snap.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-size:13px;color:var(--text2);">Snapshot — ${today}</div><div style="font-size:12px;color:var(--text3);">${hot.length} hot · ${warm.length} warm · ${accounts.length} total</div></div>`;
+    if (history.children.length > 0) history.children[0].before(snap);
+    else history.appendChild(snap);
+  }
+}
+
+function clearFeed() {
+  document.getElementById('intent-paste').value = '';
+  document.getElementById('feed-output').style.display = 'none';
+  document.getElementById('feed-list').innerHTML = '';
+  document.getElementById('feed-count-hot').textContent = '0';
+  document.getElementById('feed-count-warm').textContent = '0';
+  document.getElementById('feed-count-total').textContent = '0';
+}
+
+
+function fillPrompt(el) {
+  document.getElementById('coach-input').value = el.textContent;
+  document.getElementById('coach-input').focus();
+}
+
+function clearCoach() {
+  document.getElementById('coach-output').style.display = 'none';
+  document.getElementById('coach-response').textContent = '';
+  document.getElementById('coach-input').value = '';
+}
+
+function copyCoach() {
+  navigator.clipboard.writeText(document.getElementById('coach-response').textContent);
+  const btn = document.querySelector('#coach-output .copy-btn');
+  btn.textContent = 'Copied!'; btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+}
+
+async function askCoach() {
+  const input = document.getElementById('coach-input').value.trim();
+  if (!input) return;
+  const btn = document.getElementById('coach-btn');
+  const output = document.getElementById('coach-output');
+  const response = document.getElementById('coach-response');
+  btn.textContent = '...'; btn.disabled = true;
+  output.style.display = 'block';
+  response.textContent = '';
+
+  const systemPrompt = `You are an AI sales coach assistant for Brian, a Senior WMS BDR at Infor focused on the distribution industry. Brian is on a live sales call right now so responses must be SHORT, SCANNABLE, and immediately usable — no long paragraphs. Use bullet points when listing things. Max 150 words.
+
+Key context about Brian and Infor:
+- Infor WMS is a Gartner Magic Quadrant Leader for 7 consecutive years
+- AI capabilities: pick path optimization (15-22% travel time reduction), predictive slotting, advanced cartonization, GenAI operational intelligence, drone inventory
+- Key customer reference: Endries — 40% productivity increase, eliminated a shift, saved 9,000+ hours/year with AI
+- Brian sells to: Warehouse Managers, Supply Chain Directors, Process Improvement, VPs, C-Suite in distribution
+- Common competitors: Manhattan Associates, Blue Yonder, SAP WMS
+- Infor's value prop: No brand premium — pure value. Fair exchange. Seamlessly integrates with ERP and robotics.
+- Brian's goal on every call: book a 30-minute discovery meeting
+
+TONE — This is critical:
+- Brian wants to sound like a TRUSTED ADVISOR, not a salesperson
+- Responses should feel genuinely curious and helpful — like Brian actually cares about solving their problem
+- Never sound pushy, desperate, or salesy
+- Lead with empathy and curiosity, not features and pitches
+- Ask questions that uncover THEIR pain, don't just pitch Infor
+- If they have an objection, acknowledge it genuinely before responding
+- The goal is to make the prospect feel heard and understood first — then naturally introduce how Infor could help
+- Think: "how would a trusted colleague with expertise respond" not "how would a salesperson respond"
+
+When Brian describes a situation or objection, give him a short, confident, conversational response he can say out loud RIGHT NOW. It should sound natural — like something Brian would actually say, not a corporate script.`;
+
+  try {
+    const apiKey = getApiKey();
+    if (!apiKey) { showApiKeyModal(); return; }
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        stream: true,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: input }]
+    });
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+      for (const line of lines) {
+        const data = line.replace('data: ', '').trim();
+        if (data === '[DONE]') break;
+        try {
+          const parsed = JSON.parse(data);
+          const delta = parsed.delta?.text || '';
+          if (delta) { fullText += delta; response.textContent = fullText; }
+        } catch(e) {}
+      }
+    }
+
+    // Save to history
+    const history = document.getElementById('coach-history');
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;opacity:0.6;';
+    card.innerHTML = `<div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Previous: ${input.substring(0,60)}${input.length>60?'...':''}</div><div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">${fullText}</div>`;
+    history.prepend(card);
+
+  } catch(e) {
+    response.textContent = 'Error connecting — check your internet and try again.';
+  }
+  btn.textContent = 'Ask ⚡'; btn.disabled = false;
+  document.getElementById('coach-input').value = '';
+}
+
+// ── API KEY MANAGEMENT ───────────────────────────────────────────────────────
+
+function getApiKey() {
+  return localStorage.getItem('infor_bdr_api_key') || '';
+}
+
+function saveApiKey(key) {
+  localStorage.setItem('infor_bdr_api_key', key.trim());
+}
+
+function clearApiKey() {
+  localStorage.removeItem('infor_bdr_api_key');
+  showApiKeyModal();
+}
+
+function showApiKeyModal() {
+  document.getElementById('api-key-modal').style.display = 'flex';
+}
+
+function hideApiKeyModal() {
+  document.getElementById('api-key-modal').style.display = 'none';
+}
+
+function submitApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    document.getElementById('api-key-error').style.display = 'block';
+    return;
+  }
+  saveApiKey(key);
+  document.getElementById('api-key-input').value = '';
+  hideApiKeyModal();
+}
+
+function apiFetch(body) {
+  const key = getApiKey();
+  if (!key) { showApiKeyModal(); return Promise.reject(new Error('No API key')); }
+  return fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify(body)
+  }).then(r => r.json()).then(data => {
+    if (data.error) {
+      if (data.error.type === 'authentication_error') { clearApiKey(); throw new Error('Invalid API key — please re-enter.'); }
+      throw new Error(data.error.message || 'API error');
+    }
+    return data;
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+let acctIntelData = {};       // stores the full intel object
+let modalContext   = {};      // stores what type + persona for the modal
+let acctPersonas   = [];      // flat array of persona objects, indexed by card
+
+function showAcctTab(btn, tabId) {
+  document.querySelectorAll('#acct-tabs .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['acct-tab-overview','acct-tab-news','acct-tab-talk','acct-tab-people','acct-tab-emails','acct-tab-linkedin'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === tabId ? 'block' : 'none';
+  });
+}
+
+function copyAcctSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText || el.textContent);
+  const original = el.style.outline;
+  el.style.outline = '2px solid var(--green)';
+  setTimeout(() => { el.style.outline = original; }, 800);
+}
+
+async function runAcctIntel() {
+  const company = document.getElementById('acct-input').value.trim();
+  if (!company) return;
+
+  document.getElementById('acct-output').style.display = 'none';
+  document.getElementById('acct-loading').style.display = 'block';
+  document.getElementById('acct-btn').disabled = true;
+  document.getElementById('acct-btn').textContent = '...';
+
+  const loadingMessages = [
+    'Pulling latest news & events...',
+    'Identifying decision makers...',
+    'Mapping the org chart...',
+    'Building pain point analysis...',
+    'Almost done...'
+  ];
+  let msgIdx = 0;
+  const msgEl = document.getElementById('acct-loading-msg');
+  const barEl = document.getElementById('acct-progress-bar');
+  barEl.style.width = '0%';
+  const msgInterval = setInterval(() => {
+    if (msgIdx < loadingMessages.length) {
+      msgEl.textContent = loadingMessages[msgIdx];
+      barEl.style.width = ((msgIdx + 1) / loadingMessages.length * 85) + '%';
+      msgIdx++;
+    }
+  }, 3000);
+
+  const systemPrompt = `You are an elite B2B sales intelligence assistant for Brian, a Senior WMS BDR at Infor (distribution industry).
+Brian sells Infor WMS — a Gartner Magic Quadrant Leader for 8 consecutive years — to distribution, wholesale, and manufacturing companies.
+
+Research the given company and return ONLY a raw JSON object — no markdown, no backticks, no commentary.
+
+Return exactly this structure:
+{
+  "company": "Company name as it should be referred to",
+  "snapshot": "3-4 sentences: what they do, industry verticals, scale (revenue/employees/DCs if known), and why they are a strong WMS prospect",
+  "whereToStart": "2-3 sentences: the single best first move — who to contact first, what angle to lead with, and why the timing is good",
+  "painPoints": "Bullet list (use • ) of 4-5 likely warehouse/supply chain pain points specific to this company's industry and scale",
+  "latestNews": "Bullet list (use • ) of 3-4 recent developments with approximate dates — expansions, M&A, DC openings, tech investments, leadership hires",
+  "personas": [
+    {
+      "title": "Exact job title (e.g. VP of Supply Chain)",
+      "name": "Real person's name if known, otherwise leave blank",
+      "priority": "primary or secondary",
+      "why": "1-2 sentences on why this person matters and what pain point they own",
+      "angle": "The specific angle Brian should lead with for this persona",
+      "painFocus": "The #1 pain point this persona cares about"
+    }
+  ]
+}
+
+The personas array MUST include 6-8 distinct personas covering: C-suite (COO, CTO, CFO), VP level (VP Supply Chain, VP Operations, VP IT/Technology, VP Logistics), Director level (Director of Warehouse Operations, Director of Distribution, Director of IT), and any other relevant ops/tech leaders. Mark the top 2 as primary, rest as secondary. Use real names if you can find them.
+
+Use web search to find real, current information. Be specific — generic responses fail Brian.`;
+
+  try {
+    const res = await apiFetch({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: systemPrompt,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: `Research this company for my WMS sales outreach and return the JSON: ${company}` }]
+    });
+
+    clearInterval(msgInterval);
+    barEl.style.width = '100%';
+
+    const data = await res.json();
+    let rawText = '';
+    if (data.content && Array.isArray(data.content)) {
+      for (const block of data.content) {
+        if (block.type === 'text') rawText += block.text;
+      }
+    }
+
+    let intel;
+    try {
+      const clean = rawText.replace(/```json|```/g, '').trim();
+      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      intel = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
+    } catch(e) {
+      throw new Error('Could not parse response. Please try again.');
+    }
+
+    acctIntelData = intel;
+
+    // Populate summary sections
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.innerHTML = formatIntelText(val); };
+    set('acct-snapshot', intel.snapshot);
+    set('acct-where-to-start', intel.whereToStart);
+    set('acct-pain', intel.painPoints);
+    set('acct-news', intel.latestNews);
+
+    // Build persona cards
+    buildPersonaCards(intel);
+
+    document.getElementById('acct-loading').style.display = 'none';
+    document.getElementById('acct-output').style.display = 'block';
+    document.getElementById('acct-output').scrollIntoView({ behavior: 'smooth' });
+
+  } catch(e) {
+    clearInterval(msgInterval);
+    document.getElementById('acct-loading').style.display = 'none';
+    alert('Error: ' + (e.message || 'Could not fetch intel. Try again.'));
+  }
+
+  document.getElementById('acct-btn').disabled = false;
+  document.getElementById('acct-btn').textContent = 'Research ⚡';
+}
+
+function buildPersonaCards(intel) {
+  const grid = document.getElementById('acct-personas-grid');
+  grid.innerHTML = '';
+  acctPersonas = [];
+
+  const personas = intel.personas || [];
+  const primary   = personas.filter(p => p.priority === 'primary');
+  const secondary = personas.filter(p => p.priority !== 'primary');
+
+  const renderCard = (p, isPrimary, isNarrow) => {
+    const idx = acctPersonas.length;
+    acctPersonas.push(p);
+
+    const badgeColor = isPrimary ? 'var(--accent2)' : 'var(--text3)';
+    const badgeBg    = isPrimary ? 'rgba(124,111,205,0.12)' : 'var(--bg3)';
+    const pad        = isNarrow ? '18px 20px' : '20px 22px';
+    const titleSize  = isNarrow ? '14px' : '15px';
+    const borderCol  = isPrimary ? 'rgba(124,111,205,0.35)' : 'var(--border)';
+
+    // Escape backticks and $ so they don't break the template literal
+    const esc = s => (s || '').replace(/`/g, '&#96;').replace(/\$/g, '&#36;');
+
+    const card = document.createElement('div');
+    card.style.cssText = `background:var(--bg2);border:1px solid ${borderCol};border-radius:12px;padding:${pad};height:100%;box-sizing:border-box;`;
+
+    const safeTitle = esc(p.title);
+    const safeName  = esc(p.name);
+    const safeWhy   = esc(p.why);
+    const safeAngle = esc(p.angle);
+
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:${isNarrow?'10px':'14px'};">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap;">
+            <div style="font-family:var(--font-display);font-size:${titleSize};font-weight:700;color:var(--text);">${safeTitle}</div>
+            <span style="font-size:10px;padding:2px 9px;border-radius:20px;background:${badgeBg};color:${badgeColor};font-weight:600;text-transform:uppercase;letter-spacing:0.8px;">${isPrimary ? '⭐ Primary' : 'Secondary'}</span>
+          </div>
+          ${safeName ? '<div style="font-size:12px;color:var(--accent2);font-weight:500;">👤 ' + safeName + '</div>' : '<div style="font-size:11px;color:var(--text3);">Search LinkedIn/ZoomInfo</div>'}
+        </div>
+      </div>
+      ${!isNarrow ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;"><div style="background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--border);"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;margin-bottom:4px;">Why They Matter</div><div style="font-size:13px;color:var(--text2);line-height:1.6;">' + (safeWhy || '—') + '</div></div><div style="background:var(--bg3);border-radius:8px;padding:10px 12px;border:1px solid var(--border);"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);font-weight:600;margin-bottom:4px;">Lead Angle</div><div style="font-size:13px;color:var(--text2);line-height:1.6;">' + (safeAngle || '—') + '</div></div></div>' : '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px;">' + (safeWhy || '') + '</div>'}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button data-idx="${idx}" data-type="email"    class="acct-gen-btn" style="flex:1;min-width:80px;padding:${isNarrow?'7px 8px':'9px 14px'};background:var(--accent);border:none;border-radius:8px;font-size:${isNarrow?'12px':'13px'};font-weight:600;color:white;cursor:pointer;font-family:var(--font-display);">✉ Email</button>
+        <button data-idx="${idx}" data-type="talktack" class="acct-gen-btn" style="flex:1;min-width:80px;padding:${isNarrow?'7px 8px':'9px 14px'};background:var(--teal);border:none;border-radius:8px;font-size:${isNarrow?'12px':'13px'};font-weight:600;color:white;cursor:pointer;font-family:var(--font-display);">📞 Talk Track</button>
+        <button data-idx="${idx}" data-type="linkedin" class="acct-gen-btn" style="flex:1;min-width:80px;padding:${isNarrow?'7px 8px':'9px 14px'};background:transparent;border:1px solid rgba(124,111,205,0.5);border-radius:8px;font-size:${isNarrow?'12px':'13px'};font-weight:600;color:var(--accent2);cursor:pointer;font-family:var(--font-display);">💼 LinkedIn</button>
+      </div>
+    `;
+    return card;
+  };
+
+  // Primary cards (full width)
+  primary.forEach(p => {
+    grid.appendChild(renderCard(p, true, false));
+  });
+
+  // Secondary cards (2-col grid)
+  if (secondary.length > 0) {
+    const secHeader = document.createElement('div');
+    secHeader.style.cssText = 'font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);font-weight:600;padding:8px 0 4px;';
+    secHeader.textContent = 'Additional Targets';
+    grid.appendChild(secHeader);
+
+    const secGrid = document.createElement('div');
+    secGrid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:16px;';
+    secondary.forEach(p => {
+      secGrid.appendChild(renderCard(p, false, true));
+    });
+    grid.appendChild(secGrid);
+  }
+
+  // Single delegated event listener — avoids all inline JSON escaping
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('.acct-gen-btn');
+    if (!btn) return;
+    const idx  = parseInt(btn.dataset.idx, 10);
+    const type = btn.dataset.type;
+    openAcctModal(type, acctPersonas[idx]);
+  });
+}
+
+function openAcctModal(type, persona) {
+  modalContext = { type, persona };
+  const overlay = document.getElementById('acct-modal-overlay');
+  overlay.style.display = 'flex';
+
+  const titles = { email: '✉ Personalized Email', talktack: '📞 Talk Track Script', linkedin: '💼 LinkedIn Outreach' };
+  document.getElementById('acct-modal-title').textContent = titles[type] || 'Generate Outreach';
+  document.getElementById('acct-modal-sub').textContent = `For: ${persona.title}${persona.name ? ' · ' + persona.name : ''} at ${acctIntelData.company || ''}`;
+  document.getElementById('acct-modal-subject').textContent = '';
+  document.getElementById('acct-modal-body').textContent = '';
+  document.getElementById('acct-modal-loading').style.display = 'block';
+  document.getElementById('acct-modal-content').style.display = 'none';
+
+  generateOutreach(type, persona);
+}
+
+function closeAcctModal() {
+  document.getElementById('acct-modal-overlay').style.display = 'none';
+}
+
+function regenerateModal() {
+  document.getElementById('acct-modal-loading').style.display = 'block';
+  document.getElementById('acct-modal-content').style.display = 'none';
+  generateOutreach(modalContext.type, modalContext.persona);
+}
+
+function copyModalContent() {
+  const subj = document.getElementById('acct-modal-subject').textContent;
+  const body = document.getElementById('acct-modal-body').textContent;
+  navigator.clipboard.writeText(subj ? subj + '\n\n' + body : body);
+  const btn = document.getElementById('acct-modal-copy-btn');
+  btn.textContent = 'Copied! ✓';
+  setTimeout(() => { btn.textContent = 'Copy ✓'; }, 2000);
+}
+
+async function generateOutreach(type, persona) {
+  const company  = acctIntelData.company || document.getElementById('acct-input').value.trim();
+  const news     = acctIntelData.latestNews || '';
+  const pain     = acctIntelData.painPoints || '';
+  const snapshot = acctIntelData.snapshot   || '';
+
+  const prompts = {
+    email: `Write a short, punchy cold outreach email from Brian (Senior WMS BDR at Infor) to a ${persona.title}${persona.name ? ' named ' + persona.name : ''} at ${company}.
+
+Context:
+- Company overview: ${snapshot}
+- Recent news/triggers: ${news}
+- Key pain points: ${pain}
+- This persona's angle: ${persona.angle}
+- Pain focus for this persona: ${persona.painFocus}
+
+Return ONLY a JSON object with two keys: "subject" (email subject line) and "body" (full email text, plain text, no markdown, sign off as Brian). No backticks, no preamble.
+
+Rules: 4-5 short paragraphs, conversational not corporate, reference something specific about ${company}, soft CTA for a 30-min call. Infor WMS is a Gartner Magic Quadrant Leader for 8 consecutive years.`,
+
+    talktack: `Write a personalized cold call talk track from Brian (Senior WMS BDR at Infor) for calling a ${persona.title}${persona.name ? ' named ' + persona.name : ''} at ${company}.
+
+Context:
+- Company overview: ${snapshot}
+- Recent news/triggers: ${news}
+- Key pain points: ${pain}
+- This persona's angle: ${persona.angle}
+- Pain focus: ${persona.painFocus}
+
+Return ONLY a JSON object with one key: "body" containing the full talk track as plain text with labeled sections like OPENER:, PITCH:, DISCOVERY QUESTION:, BRIDGE:, CLOSE:. No backticks, no preamble. Sound natural and human — not a corporate script. Brian's goal is to book a 30-min discovery call.`,
+
+    linkedin: `Write LinkedIn outreach from Brian (Senior WMS BDR at Infor) for a ${persona.title}${persona.name ? ' named ' + persona.name : ''} at ${company}.
+
+Context:
+- Company overview: ${snapshot}
+- Recent triggers: ${news}
+- This persona's angle: ${persona.angle}
+
+Return ONLY a JSON object with three keys:
+- "connectNote": a LinkedIn connection request note under 280 characters, casual and NOT salesy
+- "firstMsg": a short DM to send right after connecting (3-4 sentences, curious tone, soft CTA)
+- "followupMsg": a value-add follow-up message referencing something specific about ${company} and sharing one relevant Infor WMS stat
+
+No backticks, no preamble. Plain text in each field.`
+  };
+
+  try {
+    const res = await apiFetch({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: prompts[type] }]
+    });
+
+    const data = await res.json();
+    let rawText = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+
+    let parsed;
+    try {
+      const clean = rawText.replace(/```json|```/g, '').trim();
+      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
+    } catch(e) {
+      parsed = { body: rawText };
+    }
+
+    document.getElementById('acct-modal-loading').style.display = 'none';
+    document.getElementById('acct-modal-content').style.display = 'block';
+
+    if (type === 'email') {
+      document.getElementById('acct-modal-subject').textContent = parsed.subject ? 'Subject: ' + parsed.subject : '';
+      document.getElementById('acct-modal-body').textContent = parsed.body || rawText;
+    } else if (type === 'talktack') {
+      document.getElementById('acct-modal-subject').textContent = '';
+      document.getElementById('acct-modal-body').textContent = parsed.body || rawText;
+    } else if (type === 'linkedin') {
+      document.getElementById('acct-modal-subject').textContent = '';
+      const sections = [];
+      if (parsed.connectNote)  sections.push('── CONNECTION REQUEST ──\n' + parsed.connectNote);
+      if (parsed.firstMsg)     sections.push('── AFTER CONNECTING ──\n' + parsed.firstMsg);
+      if (parsed.followupMsg)  sections.push('── VALUE-ADD FOLLOW-UP ──\n' + parsed.followupMsg);
+      document.getElementById('acct-modal-body').textContent = sections.join('\n\n') || rawText;
+    }
+
+  } catch(e) {
+    document.getElementById('acct-modal-loading').style.display = 'none';
+    document.getElementById('acct-modal-content').style.display = 'block';
+    document.getElementById('acct-modal-body').textContent = 'Error generating outreach. Please try again.';
+  }
+}
+
+// Close modal on overlay click
+document.addEventListener('DOMContentLoaded', () => {
+  // Show API key modal if no key saved yet
+  if (!getApiKey()) showApiKeyModal();
+  const overlay = document.getElementById('acct-modal-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeAcctModal();
+    });
+  }
+});
+
+function formatIntelText(text) {
+  if (!text) return '';
+  return text
+    .split('\n')
+    .map(line => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+        return `<div style="display:flex;gap:10px;margin-bottom:8px;"><span style="color:var(--accent2);flex-shrink:0;margin-top:2px;">•</span><span>${trimmed.replace(/^[•\-]\s*/, '')}</span></div>`;
+      }
+      return trimmed ? `<p style="margin-bottom:8px;">${trimmed}</p>` : '';
+    })
+    .join('');
+}
+
+function copyNotes() {
+  const name = document.getElementById('note-name').value;
+  const company = document.getElementById('note-company').value;
+  const outcome = document.getElementById('note-outcome').value;
+  const notes = document.getElementById('note-text').value;
+  const next = document.getElementById('note-nextstep').value;
+  const date = document.getElementById('note-followdate').value;
+  const tags = [...document.querySelectorAll('#pain-tags .tag-blue')].map(t => t.textContent).join(', ');
+  const text = `CALL NOTES\nProspect: ${name}\nCompany: ${company}\nOutcome: ${outcome}\nPain Points: ${tags}\nNotes: ${notes}\nNext Step: ${next}\nFollow Up: ${date}`;
+  navigator.clipboard.writeText(text);
+}
+
+function saveNote() {
+  const name = document.getElementById('note-name').value || 'Unknown';
+  const company = document.getElementById('note-company').value || 'Unknown';
+  const outcome = document.getElementById('note-outcome').value || 'N/A';
+  const notes = document.getElementById('note-text').value || '';
+  const next = document.getElementById('note-nextstep').value || '';
+  const date = document.getElementById('note-followdate').value || '';
+  const tags = [...document.querySelectorAll('#pain-tags .tag-blue')].map(t => t.textContent).join(', ') || 'None';
+  const now = new Date().toLocaleDateString();
+  const log = document.getElementById('call-log');
+  const outcomeColor = outcome === 'meeting' ? 'var(--green)' : outcome === 'not-interested' ? 'var(--red)' : 'var(--amber)';
+  const card = document.createElement('div');
+  card.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;';
+  card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div><span style="font-size:14px;font-weight:500;color:var(--text);">${name}</span> <span style="font-size:13px;color:var(--text3);">@ ${company}</span></div><div style="display:flex;gap:8px;align-items:center;"><span style="font-size:11px;color:${outcomeColor};font-weight:600;text-transform:uppercase;letter-spacing:1px;">${outcome.replace('-',' ')}</span><span style="font-size:11px;color:var(--text3);">${now}</span></div></div>${tags !== 'None' ? `<div style="margin-bottom:8px;font-size:12px;color:var(--text3);">Pain points: ${tags}</div>` : ''}${notes ? `<div style="font-size:13px;color:var(--text2);margin-bottom:8px;line-height:1.6;">${notes}</div>` : ''}${next ? `<div style="font-size:12px;color:var(--accent2);">Next: ${next}${date ? ' · ' + date : ''}</div>` : ''}`;
+  if (log.querySelector('[style*="text-align:center"]')) log.innerHTML = '';
+  log.prepend(card);
+  clearNotes();
+}
+
+function clearNotes() {
+  ['note-name','note-company','note-text','note-nextstep'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('note-outcome').value = '';
+  document.getElementById('note-followdate').value = '';
+  document.querySelectorAll('#pain-tags .tag').forEach(t => { t.className = 'tag'; t.style.cssText = 'cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);'; });
+}
+
+function clearLog() {
+  document.getElementById('call-log').innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px;">No calls logged yet — save a note to see it here</div>';
+}
+
+function togglePainTag(el) {
+  const isActive = el.classList.contains('tag-blue');
+  if (isActive) { el.className = 'tag'; el.style.cssText = 'cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);'; }
+  else { el.className = 'tag tag-blue'; el.style.cursor = 'pointer'; }
+}
+
+function selectEvType(btn) {
+  document.querySelectorAll('.ev-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ev-type').value = btn.dataset.val;
+}
+
+// ── EVENT OUTREACH GENERATOR ─────────────────────────────────────────────────
+
+async function generateEventOutreach() {
+  const eventName   = document.getElementById('ev-name').value.trim();
+  const boothInfo   = document.getElementById('ev-booth').value.trim();
+  const eventDate   = document.getElementById('ev-date').value.trim();
+  const persona     = document.getElementById('ev-persona').value;
+  const outreachType = document.getElementById('ev-type').value;
+
+  if (!eventName) { alert('Please enter the event name.'); return; }
+
+  const btn = document.getElementById('ev-btn');
+  const outputArea = document.getElementById('ev-output');
+  const loadingEl  = document.getElementById('ev-loading');
+  const contentEl  = document.getElementById('ev-content');
+
+  btn.disabled = true; btn.textContent = '...';
+  outputArea.style.display = 'block';
+  loadingEl.style.display = 'block';
+  contentEl.style.display = 'none';
+  outputArea.scrollIntoView({ behavior: 'smooth' });
+
+  const boothStr  = boothInfo ? ` Infor's booth is at ${boothInfo}.` : '';
+  const dateStr   = eventDate ? ` The event is on ${eventDate}.` : '';
+  const personaMap = {
+    any:  'a distribution or warehouse operations professional (any title)',
+    wm:   'a Warehouse Manager or Director of Warehouse Operations',
+    sc:   'a VP or Director of Supply Chain',
+    ops:  'a VP or Director of Operations',
+    it:   'a VP or Director of IT / Technology',
+    coo:  'a COO or Chief Operating Officer',
+    cfo:  'a CFO or finance leader evaluating ROI on tech investments'
+  };
+  const personaLabel = personaMap[persona] || 'a distribution operations professional';
+
+  const typeInstructions = {
+    pre_email:     'Write a pre-event cold email inviting this person to stop by the Infor booth.',
+    pre_li:        'Write a LinkedIn message inviting this person to stop by the Infor booth at the event.',
+    pre_call:      'Write a short pre-event cold call talk track to invite this person to the booth.',
+    post_email:    'Write a post-event follow-up email to someone who attended the event (even if they did not visit the booth — make it warm and reference shared experience at the event).',
+    post_li:       'Write a post-event LinkedIn message to someone who attended the same event.',
+    post_nv:       'Write a post-event follow-up email to someone who was registered for the event but you did not get to connect with at the event.',
+    booth_followup:'Write a follow-up email to someone who stopped by the Infor booth at the event and showed interest.'
+  };
+
+  const instruction = typeInstructions[outreachType] || typeInstructions['pre_email'];
+  const typeLabel   = document.getElementById('ev-type').selectedOptions[0].text;
+
+  const prompt = `You are writing outreach for Brian, a Senior WMS BDR at Infor.
+
+Event: ${eventName}${dateStr}${boothStr}
+Target persona: ${personaLabel}
+Task: ${instruction}
+
+Key facts about Infor WMS:
+- Gartner Magic Quadrant Leader for 8 consecutive years
+- AI-driven pick path optimization (15-22% travel time reduction)
+- Customer example: Endries — 40% productivity increase, saved 9,000 hrs/year, eliminated a shift
+- Integrates with major ERPs and robotics
+- No brand premium — pure value
+
+Return ONLY a JSON object with no backticks or markdown:
+${outreachType.includes('call') ? '{"body": "full talk track with labeled sections: OPENER, PITCH, BRIDGE, CLOSE"}' : '{"subject": "email subject line or empty string for LinkedIn", "body": "full message text, sign off as Brian"}'}
+
+Rules:
+- Sound human and conversational, not corporate
+- Reference the event naturally — not just as a name drop
+- For pre-event: create genuine curiosity and a clear reason to visit the booth
+- For post-event: be warm and personal, reference the shared experience
+- Keep it concise — no one reads long cold messages
+- CTA should be a 30-min discovery call or demo`;
+
+  try {
+    const res = await apiFetch({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: prompt }]
+    });
+
+    const data = await res.json();
+    const rawText = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+
+    let parsed;
+    try {
+      const clean = rawText.replace(/```json|```/g, '').trim();
+      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
+    } catch(e) {
+      parsed = { body: rawText };
+    }
+
+    // Store for regenerate
+    window._lastEvPrompt = prompt;
+    window._lastEvType   = outreachType;
+    window._lastEvLabel  = typeLabel;
+
+    document.getElementById('ev-result-label').textContent = typeLabel + (persona !== 'any' ? ' · ' + personaLabel : '');
+    const subjEl = document.getElementById('ev-result-subject');
+    if (parsed.subject) {
+      subjEl.textContent = 'Subject: ' + parsed.subject;
+      subjEl.style.display = 'block';
+    } else {
+      subjEl.style.display = 'none';
+    }
+    document.getElementById('ev-result-body').textContent = parsed.body || rawText;
+
+    loadingEl.style.display = 'none';
+    contentEl.style.display = 'block';
+
+  } catch(e) {
+    loadingEl.style.display = 'none';
+    contentEl.style.display = 'block';
+    document.getElementById('ev-result-body').textContent = 'Error generating outreach — please try again.';
+  }
+
+  btn.disabled = false; btn.textContent = 'Generate ⚡';
+}
+
+async function regenerateEventOutreach() {
+  if (!window._lastEvPrompt) return;
+  const loadingEl = document.getElementById('ev-loading');
+  const contentEl = document.getElementById('ev-content');
+  loadingEl.style.display = 'block';
+  contentEl.style.display = 'none';
+
+  try {
+    const res = await apiFetch({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: window._lastEvPrompt + '\n\nWrite a completely different version — fresh angle, different opener.' }]
+    });
+    const data = await res.json();
+    const rawText = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    let parsed;
+    try {
+      const clean = rawText.replace(/```json|```/g, '').trim();
+      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
+    } catch(e) { parsed = { body: rawText }; }
+
+    const subjEl = document.getElementById('ev-result-subject');
+    if (parsed.subject) { subjEl.textContent = 'Subject: ' + parsed.subject; subjEl.style.display = 'block'; }
+    else { subjEl.style.display = 'none'; }
+    document.getElementById('ev-result-body').textContent = parsed.body || rawText;
+  } catch(e) {
+    document.getElementById('ev-result-body').textContent = 'Error — please try again.';
+  }
+
+  loadingEl.style.display = 'none';
+  contentEl.style.display = 'block';
+}
+
+function copyEventOutreach() {
+  const subj = document.getElementById('ev-result-subject').textContent;
+  const body = document.getElementById('ev-result-body').textContent;
+  navigator.clipboard.writeText(subj ? subj + '\n\n' + body : body);
+  const btn = document.getElementById('ev-copy-btn');
+  btn.textContent = 'Copied! ✓';
+  setTimeout(() => { btn.textContent = 'Copy ✓'; }, 2000);
+}
+
+</script>
+
+</body>
+</html>
