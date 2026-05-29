@@ -491,14 +491,11 @@
     <div class="nav-item" onclick="showPage('coach', this)" style="background:rgba(79,110,247,0.12);border:1px solid rgba(79,110,247,0.25);color:var(--accent2);font-weight:500;">
       <span class="nav-icon">⚡</span> AI Call Coach
     </div>
-    <div class="nav-item" onclick="showPage('acctintel', this)">
+    <div class="nav-item active" onclick="showPage('acctintel', this)">
       <span class="nav-icon">🔍</span> Account Intel
     </div>
     <div class="nav-item" onclick="showPage('intentfeed', this)">
       <span class="nav-icon">📡</span> Live Intent Feed
-    </div>
-    <div class="nav-item active" onclick="showPage('home', this)">
-      <span class="nav-icon">🏠</span> Dashboard
     </div>
 
     <div class="nav-section">Calls</div>
@@ -547,7 +544,7 @@
 <div class="main">
 
   <!-- ACCOUNT INTELLIGENCE -->
-  <div class="page" id="page-acctintel">
+  <div class="page active" id="page-acctintel">
     <div class="page-header">
       <div class="page-title">🔍 Account Intelligence</div>
       <div class="page-sub">Type a company name and get everything you need before you dial</div>
@@ -675,66 +672,6 @@
     </div>
 
     <div id="coach-history" style="margin-top:8px;"></div>
-  </div>
-
-  <!-- HOME -->
-  <div class="page active" id="page-home">
-    <div class="page-header">
-      <div class="page-title">Good morning, Brian ⚡</div>
-      <div class="page-sub">Your WMS BDR command center for the Distribution industry</div>
-    </div>
-
-    <div class="grid3" style="margin-bottom:16px;">
-      <div class="card" style="margin:0; border-left: 3px solid var(--accent);">
-        <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Your Title</div>
-        <div style="font-size:15px; font-weight:500;">Senior WMS BDR</div>
-        <div style="font-size:13px; color:var(--text3); margin-top:2px;">Distribution · Infor</div>
-      </div>
-      <div class="card" style="margin:0; border-left: 3px solid var(--green);">
-        <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">2025 Achievement</div>
-        <div style="font-size:15px; font-weight:500; color:var(--green);">#1 BDR Globally</div>
-        <div style="font-size:13px; color:var(--text3); margin-top:2px;">Circle of Excellence</div>
-      </div>
-      <div class="card" style="margin:0; border-left: 3px solid var(--purple);">
-        <div style="font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Gartner Status</div>
-        <div style="font-size:15px; font-weight:500; color:var(--purple);">Magic Quadrant Leader</div>
-        <div style="font-size:13px; color:var(--text3); margin-top:2px;">7 consecutive years</div>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card" style="margin:0;">
-        <div class="card-title">Quick Access</div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <div onclick="showPage('acctintel', document.querySelector('[onclick*=acctintel]'))" style="padding:10px 14px; background:linear-gradient(135deg,rgba(124,111,205,0.12),rgba(124,111,205,0.05)); border-radius:8px; cursor:pointer; font-size:14px; color:var(--accent2); border:1px solid rgba(124,111,205,0.3); transition:all 0.15s; font-weight:500;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(124,111,205,0.3)'">🔍 Research a company with AI</div>
-          <div onclick="showPage('scripts', document.querySelector('[onclick*=scripts]'))" style="padding:10px 14px; background:var(--bg3); border-radius:8px; cursor:pointer; font-size:14px; color:var(--text2); border:1px solid var(--border); transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">📞 Cold call opener script</div>
-          <div onclick="showPage('objections', document.querySelector('[onclick*=objections]'))" style="padding:10px 14px; background:var(--bg3); border-radius:8px; cursor:pointer; font-size:14px; color:var(--text2); border:1px solid var(--border); transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">🛡 Handle "we're happy with our WMS"</div>
-          <div onclick="showPage('emails', document.querySelector('[onclick*=emails]'))" style="padding:10px 14px; background:var(--bg3); border-radius:8px; cursor:pointer; font-size:14px; color:var(--text2); border:1px solid var(--border); transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">✉ Cold outreach email template</div>
-          <div onclick="showPage('ai', document.querySelector('[onclick*=ai]'))" style="padding:10px 14px; background:var(--bg3); border-radius:8px; cursor:pointer; font-size:14px; color:var(--text2); border:1px solid var(--border); transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">🤖 AI 30-second story</div>
-        </div>
-      </div>
-      <div class="card" style="margin:0;">
-        <div class="card-title">Your Key Numbers</div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
-            <span style="font-size:13px; color:var(--text2);">Promat pipeline generated</span>
-            <span style="font-size:15px; font-weight:600; color:var(--green);">$7–9M</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
-            <span style="font-size:13px; color:var(--text2);">Personal ACV contributed</span>
-            <span style="font-size:15px; font-weight:600; color:var(--green);">$3.3M</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
-            <span style="font-size:13px; color:var(--text2);">Tentative meetings at Promat</span>
-            <span style="font-size:15px; font-weight:600; color:var(--accent2);">29</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;">
-            <span style="font-size:13px; color:var(--text2);">Largest opportunity sourced</span>
-            <span style="font-size:15px; font-weight:600; color:var(--purple);">$6M ACV</span>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- CALL SCRIPTS -->
@@ -1713,6 +1650,7 @@ When Brian describes a situation or objection, give him a short, confident, conv
         stream: true,
         system: systemPrompt,
         messages: [{ role: 'user', content: input }]
+      })
     });
 
     const reader = res.body.getReader();
@@ -1880,7 +1818,7 @@ The personas array MUST include 6-8 distinct personas covering: C-suite (COO, CT
 Use web search to find real, current information. Be specific — generic responses fail Brian.`;
 
   try {
-    const res = await apiFetch({
+    const data = await apiFetch({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4000,
         system: systemPrompt,
@@ -1891,7 +1829,6 @@ Use web search to find real, current information. Be specific — generic respon
     clearInterval(msgInterval);
     barEl.style.width = '100%';
 
-    const data = await res.json();
     let rawText = '';
     if (data.content && Array.isArray(data.content)) {
       for (const block of data.content) {
@@ -1902,7 +1839,8 @@ Use web search to find real, current information. Be specific — generic respon
     let intel;
     try {
       const clean = rawText.replace(/```json|```/g, '').trim();
-      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      let jsonMatch = null;
+      { let s=clean.indexOf('{'),d=0,e=-1; if(s>-1){for(let i=s;i<clean.length;i++){if(clean[i]==='{')d++;else if(clean[i]==='}'){d--;if(d===0){e=i;break;}}} if(e>-1) jsonMatch=[clean.slice(s,e+1)]; } }
       intel = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
     } catch(e) {
       throw new Error('Could not parse response. Please try again.');
@@ -2096,19 +2034,19 @@ No backticks, no preamble. Plain text in each field.`
   };
 
   try {
-    const res = await apiFetch({
+    const data = await apiFetch({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1200,
         messages: [{ role: 'user', content: prompts[type] }]
     });
 
-    const data = await res.json();
     let rawText = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
 
     let parsed;
     try {
       const clean = rawText.replace(/```json|```/g, '').trim();
-      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      let jsonMatch = null;
+      { let s=clean.indexOf('{'),d=0,e=-1; if(s>-1){for(let i=s;i<clean.length;i++){if(clean[i]==='{')d++;else if(clean[i]==='}'){d--;if(d===0){e=i;break;}}} if(e>-1) jsonMatch=[clean.slice(s,e+1)]; } }
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
     } catch(e) {
       parsed = { body: rawText };
@@ -2292,19 +2230,19 @@ Rules:
 - CTA should be a 30-min discovery call or demo`;
 
   try {
-    const res = await apiFetch({
+    const data = await apiFetch({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 800,
         messages: [{ role: 'user', content: prompt }]
     });
 
-    const data = await res.json();
     const rawText = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
 
     let parsed;
     try {
       const clean = rawText.replace(/```json|```/g, '').trim();
-      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      let jsonMatch = null;
+      { let s=clean.indexOf('{'),d=0,e=-1; if(s>-1){for(let i=s;i<clean.length;i++){if(clean[i]==='{')d++;else if(clean[i]==='}'){d--;if(d===0){e=i;break;}}} if(e>-1) jsonMatch=[clean.slice(s,e+1)]; } }
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
     } catch(e) {
       parsed = { body: rawText };
@@ -2345,17 +2283,17 @@ async function regenerateEventOutreach() {
   contentEl.style.display = 'none';
 
   try {
-    const res = await apiFetch({
+    const data = await apiFetch({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 800,
         messages: [{ role: 'user', content: window._lastEvPrompt + '\n\nWrite a completely different version — fresh angle, different opener.' }]
     });
-    const data = await res.json();
     const rawText = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
     let parsed;
     try {
       const clean = rawText.replace(/```json|```/g, '').trim();
-      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      let jsonMatch = null;
+      { let s=clean.indexOf('{'),d=0,e=-1; if(s>-1){for(let i=s;i<clean.length;i++){if(clean[i]==='{')d++;else if(clean[i]==='}'){d--;if(d===0){e=i;break;}}} if(e>-1) jsonMatch=[clean.slice(s,e+1)]; } }
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
     } catch(e) { parsed = { body: rawText }; }
 
