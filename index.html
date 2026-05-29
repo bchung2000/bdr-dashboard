@@ -1645,7 +1645,7 @@ When Brian describes a situation or objection, give him a short, confident, conv
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 300,
         stream: true,
         system: systemPrompt,
@@ -1819,7 +1819,7 @@ Use web search to find real, current information. Be specific — generic respon
 
   try {
     const data = await apiFetch({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 4000,
         system: systemPrompt,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
@@ -2035,7 +2035,7 @@ No backticks, no preamble. Plain text in each field.`
 
   try {
     const data = await apiFetch({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 1200,
         messages: [{ role: 'user', content: prompts[type] }]
     });
@@ -2231,7 +2231,7 @@ Rules:
 
   try {
     const data = await apiFetch({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 800,
         messages: [{ role: 'user', content: prompt }]
     });
@@ -2284,7 +2284,7 @@ async function regenerateEventOutreach() {
 
   try {
     const data = await apiFetch({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 800,
         messages: [{ role: 'user', content: window._lastEvPrompt + '\n\nWrite a completely different version — fresh angle, different opener.' }]
     });
