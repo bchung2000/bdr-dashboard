@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDR Command Center — AI-powered prospecting workspace</title>
+<meta name="description" content="Account intelligence, live call coaching, and outreach generation in one workspace. Built by a #1-ranked BDR.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --porcelain:#EDF1F5;
+  --ink:#101720;
+  --slate:#56687C;
+  --signal:#E8402A;
+  --signal-soft:#FBE6E1;
+  --live:#16B877;
+  --card:#FFFFFF;
+  --line:#D8E0E8;
+  --radius:20px;
+  --font-display:"Archivo",sans-serif;
+  --font-body:"Instrument Sans",sans-serif;
+  --font-mono:"IBM Plex Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--porcelain);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:17px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--signal);color:#fff}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--signal);outline-offset:3px;border-radius:6px}
+
+/* ---------- ambient background blobs (organic 2026 softness) ---------- */
+.blob{
+  position:fixed;border-radius:50%;filter:blur(90px);opacity:.5;z-index:-1;
+  pointer-events:none;
+}
+.blob-a{width:520px;height:520px;background:#FFD9CF;top:-160px;right:-120px}
+.blob-b{width:420px;height:420px;background:#D2E9DE;bottom:-140px;left:-140px}
+
+/* ---------- nav ---------- */
+nav{
+  position:fixed;top:14px;left:50%;transform:translateX(-50%);
+  width:min(1080px,calc(100% - 28px));
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 18px;z-index:50;
+  background:rgba(255,255,255,.62);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.7);
+  border-radius:999px;
+  box-shadow:0 8px 30px rgba(16,23,32,.07);
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;letter-spacing:-.02em;text-decoration:none;font-size:17px}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--live);box-shadow:0 0 0 0 rgba(22,184,119,.5);animation:pulse 2.2s infinite}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(22,184,119,.45)}
+  70%{box-shadow:0 0 0 12px rgba(22,184,119,0)}
+  100%{box-shadow:0 0 0 0 rgba(22,184,119,0)}
+}
+.nav-links{display:flex;gap:22px;align-items:center;font-size:15px;font-weight:500}
+.nav-links a{text-decoration:none;color:var(--slate);transition:color .2s}
+.nav-links a:hover{color:var(--ink)}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--ink);color:#fff;text-decoration:none;
+  font-family:var(--font-body);font-weight:600;font-size:15px;
+  padding:11px 22px;border-radius:999px;border:0;cursor:pointer;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(16,23,32,.22)}
+.btn.signal{background:var(--signal)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--ink);box-shadow:none}
+
+/* ---------- hero ---------- */
+header{
+  min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+  padding:140px 20px 40px;max-width:1160px;margin:0 auto;width:100%;
+}
+.eyebrow{
+  font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--signal);display:flex;align-items:center;gap:10px;margin-bottom:22px;
+}
+.eyebrow::before{content:"";width:34px;height:2px;background:var(--signal)}
+h1{
+  font-family:var(--font-display);
+  font-size:clamp(2.9rem,8.4vw,7rem);
+  line-height:.98;letter-spacing:-.035em;
+  font-variation-settings:"wght" 750,"wdth" 110;
+  max-width:14ch;
+}
+h1 .kinetic{display:inline-block;transition:font-variation-settings .08s linear}
+h1 em{font-style:normal;color:var(--signal)}
+.hero-sub{max-width:54ch;color:var(--slate);font-size:clamp(1.02rem,1.6vw,1.2rem);margin:26px 0 34px}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap}
+
+/* ---------- ticker ---------- */
+.ticker-wrap{
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.55);backdrop-filter:blur(8px);
+  overflow:hidden;white-space:nowrap;padding:13px 0;margin-top:64px;
+}
+.ticker{display:inline-block;animation:scroll 38s linear infinite}
+.ticker-wrap:hover .ticker{animation-play-state:paused}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tick{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:13.5px;color:var(--slate);
+  margin:0 26px;
+}
+.tick b{color:var(--ink);font-weight:500}
+.tick .dot{width:7px;height:7px;border-radius:50%;background:var(--live);flex:none}
+.tick .hot .dot,.tick.hot .dot{background:var(--signal)}
+
+/* ---------- sections ---------- */
+section{max-width:1160px;margin:0 auto;padding:110px 20px}
+.kicker{font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:14px}
+h2{
+  font-family:var(--font-display);font-size:clamp(2rem,4.6vw,3.4rem);
+  letter-spacing:-.03em;line-height:1.04;font-variation-settings:"wght" 720,"wdth" 105;
+  max-width:22ch;margin-bottom:18px;
+}
+.section-sub{color:var(--slate);max-width:58ch;margin-bottom:54px}
+
+/* scroll reveal */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal:nth-child(2){transition-delay:.06s}
+.reveal:nth-child(3){transition-delay:.12s}
+.reveal:nth-child(4){transition-delay:.18s}
+
+/* ---------- bento ---------- */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.cell{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:30px;position:relative;overflow:hidden;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s;
+}
+.cell:hover{transform:translateY(-5px);box-shadow:0 18px 44px rgba(16,23,32,.1)}
+.cell h3{font-family:var(--font-display);font-size:1.28rem;letter-spacing:-.015em;font-variation-settings:"wght" 680;margin-bottom:8px}
+.cell p{color:var(--slate);font-size:15.5px}
+.cell .tag{
+  font-family:var(--font-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--signal);background:var(--signal-soft);
+  display:inline-block;padding:4px 10px;border-radius:999px;margin-bottom:16px;
+}
+.span-4{grid-column:span 4}.span-3{grid-column:span 3}.span-2{grid-column:span 2}
+.cell.feature-ai{grid-row:span 2}
+
+/* mini persona card inside Account Intel cell */
+.mini-card{
+  margin-top:22px;background:var(--porcelain);border:1px solid var(--line);
+  border-radius:14px;padding:16px;font-size:13.5px;
+}
+.mini-card .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mini-card .name{font-weight:600}
+.mini-card .role{color:var(--slate);font-size:12.5px}
+.mini-chip{font-family:var(--font-mono);font-size:11px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-right:6px;display:inline-block;margin-top:4px}
+
+/* typing demo in Call Coach cell */
+.coach-line{
+  margin-top:20px;font-family:var(--font-mono);font-size:13.5px;
+  background:var(--ink);color:#D7E4DF;border-radius:14px;padding:16px;min-height:96px;
+}
+.coach-line .cur{display:inline-block;width:8px;height:15px;background:var(--live);vertical-align:-2px;animation:blink 1s steps(1) infinite;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+.coach-label{color:var(--live);display:block;margin-bottom:6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+
+/* ---------- workflow ---------- */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:step}
+.step{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:28px;position:relative;
+}
+.step::before{
+  counter-increment:step;content:"0" counter(step);
+  font-family:var(--font-mono);font-size:13px;color:var(--signal);
+  display:block;margin-bottom:14px;
+}
+.step h3{font-family:var(--font-display);font-size:1.15rem;font-variation-settings:"wght" 680;margin-bottom:6px}
+.step p{color:var(--slate);font-size:14.5px}
+.step::after{
+  content:"→";position:absolute;right:-15px;top:50%;transform:translateY(-50%);
+  color:var(--slate);font-size:18px;z-index:2;
+}
+.step:last-child::after{display:none}
+
+/* ---------- proof band ---------- */
+.proof{
+  background:var(--ink);border-radius:28px;color:#fff;
+  padding:64px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:36px;
+}
+.proof .stat{border-left:2px solid var(--signal);padding-left:22px}
+.proof .num{font-family:var(--font-display);font-size:clamp(2.2rem,4.5vw,3.4rem);font-variation-settings:"wght" 760,"wdth" 108;letter-spacing:-.03em;line-height:1}
+.proof .lbl{color:#9AAaBC;font-size:14.5px;margin-top:10px;max-width:26ch}
+.proof-note{grid-column:1/-1;color:#7E8FA3;font-family:var(--font-mono);font-size:12.5px;margin-top:6px}
+
+/* ---------- pricing ---------- */
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:840px}
+.price-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:36px;position:relative;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s;
+}
+.price-card:hover{transform:translateY(-5px);box-shadow:0 18px 44px rgba(16,23,32,.1)}
+.price-card.pro{border:2px solid var(--signal)}
+.price-card .plan{font-family:var(--font-mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:14px}
+.price-card .price{font-family:var(--font-display);font-size:2.9rem;font-variation-settings:"wght" 760,"wdth" 108;letter-spacing:-.03em;line-height:1}
+.price-card .per{font-size:15px;color:var(--slate);font-family:var(--font-body)}
+.price-card ul{list-style:none;margin:24px 0 28px}
+.price-card li{padding:7px 0;color:var(--slate);font-size:15px;display:flex;gap:10px}
+.price-card li::before{content:"✓";color:var(--live);font-weight:700;flex:none}
+.price-card.pro li::before{color:var(--signal)}
+.badge{
+  position:absolute;top:-13px;right:24px;background:var(--signal);color:#fff;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  padding:5px 14px;border-radius:999px;
+}
+@media(max-width:760px){.price-grid{grid-template-columns:1fr}}
+
+/* ---------- final cta ---------- */
+.final{
+  text-align:center;padding:130px 20px 150px;
+}
+.final h2{margin:0 auto 18px;max-width:18ch}
+.final p{color:var(--slate);max-width:46ch;margin:0 auto 36px}
+.key-note{
+  margin-top:26px;font-family:var(--font-mono);font-size:12.5px;color:var(--slate);
+}
+
+footer{
+  border-top:1px solid var(--line);
+  padding:30px 20px;max-width:1160px;margin:0 auto;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  color:var(--slate);font-size:14px;
+}
+footer a{color:var(--slate)}
+
+/* ---------- responsive ---------- */
+@media(max-width:900px){
+  .span-4,.span-3,.span-2{grid-column:span 6}
+  .flow{grid-template-columns:1fr 1fr}
+  .step::after{display:none}
+  .proof{grid-template-columns:1fr;padding:48px 28px}
+  .nav-links{display:none}
+}
+@media(max-width:560px){
+  .flow{grid-template-columns:1fr}
+}
+
+/* ---------- reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="blob blob-a" aria-hidden="true"></div>
+<div class="blob blob-b" aria-hidden="true"></div>
+
+<nav aria-label="Main">
+  <a class="brand" href="#top"><span class="brand-dot" aria-hidden="true"></span>BDR Command Center</a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#pricing">Pricing</a>
+    <a href="auth.html">Log in</a>
+  </div>
+  <a class="btn signal" href="auth.html">Launch dashboard</a>
+</nav>
+
+<header id="top">
+  <p class="eyebrow">Built by a BDR. Powered by Claude.</p>
+  <h1><span class="kinetic">Every signal.</span><br><span class="kinetic">One <em>command</em> center.</span></h1>
+  <p class="hero-sub">Account research, persona-ready outreach, live call coaching, and intent signals — in a single workspace, so the next best touch is never more than one click away.</p>
+  <div class="hero-ctas">
+    <a class="btn signal" href="auth.html">Launch the dashboard</a>
+    <a class="btn ghost" href="#pricing">See pricing</a>
+  </div>
+
+  <div class="ticker-wrap" aria-label="Sample intent signal feed">
+    <div class="ticker" id="ticker">
+      <span class="tick"><span class="dot"></span><b>WMS intent</b> spike · industrial distributor · Southeast</span>
+      <span class="tick hot"><span class="dot"></span><b>New facility</b> announced · building products · Auburn AL</span>
+      <span class="tick"><span class="dot"></span><b>ERP evaluation</b> signal · electrical wholesale · TX</span>
+      <span class="tick"><span class="dot"></span><b>Acquisition</b> closed · MRO supplier · national</span>
+      <span class="tick hot"><span class="dot"></span><b>Leadership change</b> · VP Supply Chain · 3PL</span>
+      <span class="tick"><span class="dot"></span><b>Robotics RFP</b> detected · food &amp; beverage DC</span>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <p class="kicker reveal">What's inside</p>
+  <h2 class="reveal">A full prospecting motion, not another tab to manage</h2>
+  <p class="section-sub reveal">Ten tools that used to live across browser tabs, docs, and memory — connected in one place and wired to AI where it actually saves time.</p>
+
+  <div class="bento">
+    <div class="cell span-4 reveal">
+      <span class="tag">AI · live web research</span>
+      <h3>Account Intelligence</h3>
+      <p>Type a company name and get a researched brief with decision-maker persona cards — each with one-click Email, Talk Track, and LinkedIn outreach drafted in your voice.</p>
+      <div class="mini-card" aria-hidden="true">
+        <div class="row"><span class="name">VP, Supply Chain</span><span class="role">persona card</span></div>
+        <span class="mini-chip">✉ Email</span><span class="mini-chip">🎙 Talk track</span><span class="mini-chip">in LinkedIn</span>
+      </div>
+    </div>
+
+    <div class="cell span-2 feature-ai reveal">
+      <span class="tag">AI · streaming</span>
+      <h3>AI Call Coach</h3>
+      <p>Real-time coaching while you work a call. Objection surfaced? Get the counter before the silence gets awkward.</p>
+      <div class="coach-line"><span class="coach-label">Coach</span><span id="typeTarget"></span><span class="cur" aria-hidden="true"></span></div>
+    </div>
+
+    <div class="cell span-2 reveal">
+      <span class="tag">AI</span>
+      <h3>Event Outreach Generator</h3>
+      <p>Pre- and post-event sequences from four inputs: event, booth, date, persona. Built for trade-show season.</p>
+    </div>
+
+    <div class="cell span-2 reveal">
+      <span class="tag">Live</span>
+      <h3>Intent Feed</h3>
+      <p>Buying signals across your territory, ranked so the hottest accounts rise to the top of your day.</p>
+    </div>
+
+    <div class="cell span-2 reveal">
+      <h3>Call Scripts</h3>
+      <p>Openers, gatekeeper paths, voicemails, booking language, and discovery questions — versioned and ready.</p>
+    </div>
+
+    <div class="cell span-2 reveal">
+      <h3>Objection Handling</h3>
+      <p>The counters that work, organized by objection — not by wishful thinking.</p>
+    </div>
+
+    <div class="cell span-2 reveal">
+      <h3>Email Templates</h3>
+      <p>Proven frames for cold touch, follow-up, and break-up emails. Edit, don't start from blank.</p>
+    </div>
+
+    <div class="cell span-2 reveal">
+      <h3>Story &amp; Stats + References</h3>
+      <p>Customer proof points and reference stories at your fingertips mid-conversation.</p>
+    </div>
+
+    <div class="cell span-6 reveal">
+      <span class="tag">Memory</span>
+      <h3>Call Notes</h3>
+      <p>Log every conversation where you work, not in a fifth tool. Context compounds — the next call starts where the last one ended.</p>
+    </div>
+  </div>
+</section>
+
+<section id="workflow">
+  <p class="kicker reveal">The motion</p>
+  <h2 class="reveal">From cold account to booked meeting</h2>
+  <p class="section-sub reveal">The dashboard mirrors the actual sequence of a working day — each step hands off to the next.</p>
+  <div class="flow">
+    <div class="step reveal"><h3>Research</h3><p>Account Intelligence builds the brief and surfaces who to contact.</p></div>
+    <div class="step reveal"><h3>Reach out</h3><p>Persona-tuned email, call talk track, and LinkedIn touch — generated, then made yours.</p></div>
+    <div class="step reveal"><h3>Work the call</h3><p>Scripts, objection counters, and the AI Coach in your corner live.</p></div>
+    <div class="step reveal"><h3>Log &amp; follow up</h3><p>Notes captured, next touch queued, intent feed watching while you sleep.</p></div>
+  </div>
+</section>
+
+<section id="pricing">
+  <p class="kicker reveal">Pricing</p>
+  <h2 class="reveal">One plan. Every feature. No API keys to manage.</h2>
+  <p class="section-sub reveal">Your subscription includes the AI — account research, call coaching, and outreach generation run on us. Cancel anytime from your billing portal.</p>
+  <div class="price-grid">
+    <div class="price-card reveal">
+      <p class="plan">Free preview</p>
+      <div class="price">$0</div>
+      <ul>
+        <li>Browse every feature on this page</li>
+        <li>Call scripts &amp; objection library samples</li>
+        <li>See the workflow before you commit</li>
+      </ul>
+      <a class="btn ghost" href="#features">Explore features</a>
+    </div>
+    <div class="price-card pro reveal">
+      <span class="badge">Full access</span>
+      <p class="plan">Pro</p>
+      <div class="price">$19<span class="per">/month</span></div>
+      <ul>
+        <li>Account Intelligence with live web research</li>
+        <li>AI Call Coach, streaming in real time</li>
+        <li>Event Outreach Generator &amp; Live Intent Feed</li>
+        <li>Full scripts, objections, templates &amp; references</li>
+        <li>AI usage included — no Anthropic account needed</li>
+        <li>Cancel anytime, self-serve billing</li>
+      </ul>
+      <a class="btn signal" href="auth.html">Start your subscription</a>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <p class="kicker reveal">Why trust it</p>
+  <h2 class="reveal">Built from a workflow that produced real numbers</h2>
+  <div class="proof reveal">
+    <div class="stat"><div class="num">366%</div><div class="lbl">quota attainment in a single quarter using this motion</div></div>
+    <div class="stat"><div class="num">#1</div><div class="lbl">globally ranked BDR, Circle of Excellence inductee</div></div>
+    <div class="stat"><div class="num">Record</div><div class="lbl">best event-outreach performance in company history</div></div>
+    <p class="proof-note">// individual results from the builder's own pipeline — your mileage is yours to make</p>
+  </div>
+</section>
+
+<section class="final">
+  <p class="kicker reveal">Get started</p>
+  <h2 class="reveal">Your pipeline is already talking. Start listening.</h2>
+  <p class="reveal">Create an account, subscribe, and the full dashboard is yours — no install, no API keys, runs in your browser.</p>
+  <a class="btn signal reveal" href="auth.html">Launch the dashboard →</a>
+  <p class="key-note reveal">$19/month · AI usage included · cancel anytime</p>
+</section>
+
+<footer>
+  <span>BDR Command Center — built by Brian Chung</span>
+  <span><a href="auth.html">Sign in</a> · <a href="index.html#pricing">Pricing</a></span>
+</footer>
+
+<script>
+// ---------- scroll reveal ----------
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+},{threshold:.14});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// ---------- kinetic hero type (scroll-driven variable font) ----------
+const kinetics = document.querySelectorAll('.kinetic');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduced){
+  let ticking=false;
+  window.addEventListener('scroll',()=>{
+    if(ticking) return; ticking=true;
+    requestAnimationFrame(()=>{
+      const p = Math.min(1, window.scrollY / (window.innerHeight*0.9));
+      const wght = 750 - p*330;   // 750 -> 420
+      const wdth = 110 - p*40;    // 110 -> 70 (compresses as you scroll)
+      kinetics.forEach(k=>k.style.fontVariationSettings=`"wght" ${wght}, "wdth" ${wdth}`);
+      ticking=false;
+    });
+  },{passive:true});
+}
+
+// ---------- duplicate ticker content for seamless loop ----------
+const ticker = document.getElementById('ticker');
+ticker.innerHTML += ticker.innerHTML;
+
+
+// ---------- typing demo in Call Coach card ----------
+const lines = [
+  "They said \u201Cwe just went live on a new ERP.\u201D Pivot: WMS rides on top \u2014 ask what the DC team gave up in the migration.",
+  "Gatekeeper detected. Try: \u201CI promised her team a benchmark before Friday \u2014 can you point me to her calendar owner?\u201D",
+  "Budget objection. Counter with the 9,000-hours-saved reference, then ask what manual workaround costs them today."
+];
+const target = document.getElementById('typeTarget');
+if(reduced){ target.textContent = lines[0]; }
+else{
+  let li=0, ci=0, deleting=false;
+  (function type(){
+    const line = lines[li];
+    if(!deleting){
+      target.textContent = line.slice(0, ++ci);
+      if(ci===line.length){ deleting=true; return setTimeout(type, 2600); }
+      return setTimeout(type, 26 + Math.random()*34);
+    }
+    target.textContent = "";
+    ci=0; deleting=false; li=(li+1)%lines.length;
+    setTimeout(type, 500);
+  })();
+}
+</script>
+</body>
+</html>

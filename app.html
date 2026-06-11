@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDR Command Center</title>
+<script src="config.js"></script>
+<script src="gate.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --porcelain:#EDF1F5;--ink:#101720;--slate:#56687C;--signal:#E8402A;--signal-soft:#FBE6E1;
+  --live:#16B877;--live-soft:#DEF5EA;--card:#FFFFFF;--line:#D8E0E8;--radius:16px;
+  --font-display:"Archivo",sans-serif;--font-body:"Instrument Sans",sans-serif;--font-mono:"IBM Plex Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--porcelain);color:var(--ink);font-family:var(--font-body);font-size:15.5px;line-height:1.55;display:flex;min-height:100vh}
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px;border-radius:6px}
+button{font-family:inherit;cursor:pointer}
+
+/* ---------- welcome toast ---------- */
+.welcome-toast{
+  position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-80px);
+  z-index:100;background:var(--ink);color:#fff;font-size:14px;font-weight:600;
+  padding:11px 24px;border-radius:99px;box-shadow:0 12px 32px rgba(16,23,32,.25);
+  transition:transform .45s cubic-bezier(.2,.8,.2,1);pointer-events:none;
+}
+.welcome-toast.in{transform:translateX(-50%) translateY(0)}
+
+/* ---------- sidebar ---------- */
+aside{
+  width:248px;flex:none;background:var(--card);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;padding:18px 14px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-variation-settings:"wght" 780;letter-spacing:-.02em;font-size:15.5px;padding:10px 10px 18px}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:var(--live);animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(22,184,119,.45)}70%{box-shadow:0 0 0 10px rgba(22,184,119,0)}100%{box-shadow:0 0 0 0 rgba(22,184,119,0)}}
+.group-label{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);padding:14px 10px 6px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:none;border:0;border-radius:10px;padding:9px 10px;font-size:14.5px;font-weight:500;color:var(--slate);
+  transition:background .15s,color .15s;
+}
+.nav-item:hover{background:var(--porcelain);color:var(--ink)}
+.nav-item.active{background:var(--signal-soft);color:var(--signal);font-weight:600}
+.nav-item .ico{width:18px;text-align:center;flex:none}
+.nav-item .ai-chip{margin-left:auto;font-family:var(--font-mono);font-size:9.5px;background:var(--ink);color:#fff;border-radius:99px;padding:2px 7px;letter-spacing:.06em}
+.account{
+  margin-top:auto;border-top:1px solid var(--line);padding-top:12px;
+}
+.account .email{font-family:var(--font-mono);font-size:12px;color:var(--slate);padding:4px 10px 8px;word-break:break-all}
+.account .row{display:flex;gap:8px;padding:0 8px}
+.account button{
+  flex:1;border:1.5px solid var(--line);background:#fff;border-radius:99px;
+  font-size:12.5px;font-weight:600;padding:7px;color:var(--slate);transition:border-color .15s,color .15s;
+}
+.account button:hover{border-color:var(--ink);color:var(--ink)}
+.sub-pill{display:inline-flex;align-items:center;gap:6px;background:var(--live-soft);color:#0B6B45;font-family:var(--font-mono);font-size:11px;border-radius:99px;padding:4px 11px;margin:0 10px 10px}
+.sub-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--live)}
+
+/* ---------- main ---------- */
+main{flex:1;padding:28px 28px 40px;max-width:1060px}
+.page{display:none}
+.page.show{display:block;animation:fadeUp .35s cubic-bezier(.2,.7,.3,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.page-head{margin-bottom:22px}
+.page-head .kicker{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal);margin-bottom:6px}
+.page-head h1{font-family:var(--font-display);font-size:1.9rem;letter-spacing:-.025em;font-variation-settings:"wght" 740,"wdth" 106}
+.page-head p{color:var(--slate);max-width:62ch;margin-top:6px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:14px}
+.card h3{font-family:var(--font-display);font-size:1.05rem;font-variation-settings:"wght" 680;margin-bottom:6px}
+.card .muted{color:var(--slate);font-size:14px}
+
+/* search bar */
+.search-row{display:flex;gap:10px;margin-bottom:18px}
+.search-row input{
+  flex:1;padding:13px 16px;border:1.5px solid var(--line);border-radius:12px;font-family:inherit;font-size:15px;background:#fff;
+}
+.search-row input:focus{border-color:var(--ink);outline:none}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;background:var(--signal);color:#fff;border:0;
+  font-weight:600;font-size:14.5px;padding:12px 22px;border-radius:99px;transition:transform .2s,box-shadow .2s;text-decoration:none;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(232,64,42,.3)}
+.btn.dark{background:var(--ink)}
+.btn.mini{padding:7px 14px;font-size:12.5px}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--ink);box-shadow:none}
+
+/* persona cards */
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.persona{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;transition:transform .2s,box-shadow .2s}
+.persona:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(16,23,32,.09)}
+.persona .role{font-family:var(--font-display);font-variation-settings:"wght" 700;font-size:1.02rem}
+.persona .why{color:var(--slate);font-size:13.5px;margin:8px 0 14px}
+.persona .actions{display:flex;gap:7px;flex-wrap:wrap}
+.tag{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--signal);background:var(--signal-soft);display:inline-block;padding:3px 9px;border-radius:99px;margin-bottom:10px}
+
+/* intent feed */
+.feed-item{display:flex;gap:13px;align-items:flex-start;padding:15px 4px;border-bottom:1px solid var(--line)}
+.feed-item:last-child{border-bottom:0}
+.feed-dot{width:8px;height:8px;border-radius:50%;background:var(--live);flex:none;margin-top:7px}
+.feed-item.hot .feed-dot{background:var(--signal)}
+.feed-item .co{font-weight:600}
+.feed-item .sig{color:var(--slate);font-size:14px}
+.feed-item .when{margin-left:auto;font-family:var(--font-mono);font-size:11.5px;color:var(--slate);flex:none}
+.score{font-family:var(--font-mono);font-size:11px;border-radius:99px;padding:2px 9px;background:var(--live-soft);color:#0B6B45;flex:none;margin-top:3px}
+.feed-item.hot .score{background:var(--signal-soft);color:#A82812}
+
+/* call coach */
+.coach-wrap{background:var(--ink);border-radius:var(--radius);padding:24px;color:#D7E4DF;font-family:var(--font-mono);font-size:14px;min-height:170px}
+.coach-wrap .lbl{color:var(--live);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:10px}
+.cur{display:inline-block;width:8px;height:15px;background:var(--live);vertical-align:-2px;animation:blink 1s steps(1) infinite;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+
+/* scripts accordion */
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+summary{padding:15px 18px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::after{content:"+";font-family:var(--font-mono);color:var(--slate)}
+details[open] summary::after{content:"–"}
+details .body{padding:0 18px 16px;color:var(--slate);font-size:14.5px}
+details .body em{color:var(--ink);font-style:normal;font-weight:600}
+
+/* notes */
+textarea{width:100%;min-height:120px;border:1.5px solid var(--line);border-radius:12px;padding:14px;font-family:inherit;font-size:14.5px;resize:vertical;background:#fff}
+textarea:focus{border-color:var(--ink);outline:none}
+.note-meta{display:flex;gap:8px;margin:10px 0 14px;flex-wrap:wrap}
+.note-meta input{flex:1;min-width:140px;padding:10px 13px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:980px){.two-col{grid-template-columns:1fr}}
+@media(max-width:840px){
+  aside{position:fixed;left:-260px;transition:left .25s;z-index:60}
+  aside.open{left:0;box-shadow:0 0 60px rgba(16,23,32,.3)}
+  .menu-btn{display:inline-flex!important}
+  main{padding:60px 16px 30px}
+}
+.menu-btn{display:none;position:fixed;top:14px;left:12px;z-index:70;background:var(--ink);color:#fff;border:0;border-radius:99px;padding:8px 16px;font-size:13px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="welcome-toast" id="welcomeToast">Welcome to your command center 🎉</div>
+<button class="menu-btn" onclick="document.querySelector('aside').classList.toggle('open')">Menu</button>
+
+<aside>
+  <div class="brand"><span class="brand-dot"></span>BDR Command Center</div>
+  <span class="sub-pill">Pro · active</span>
+
+  <p class="group-label">AI tools</p>
+  <button class="nav-item active" data-page="intel"><span class="ico">🎯</span>Account Intelligence<span class="ai-chip">AI</span></button>
+  <button class="nav-item" data-page="coach"><span class="ico">🎙</span>AI Call Coach<span class="ai-chip">AI</span></button>
+  <button class="nav-item" data-page="event"><span class="ico">📍</span>Event Outreach<span class="ai-chip">AI</span></button>
+  <button class="nav-item" data-page="feed"><span class="ico">📡</span>Live Intent Feed</button>
+
+  <p class="group-label">Playbook</p>
+  <button class="nav-item" data-page="scripts"><span class="ico">📞</span>Call Scripts</button>
+  <button class="nav-item" data-page="objections"><span class="ico">🛡</span>Objection Handling</button>
+  <button class="nav-item" data-page="emails"><span class="ico">✉️</span>Email Templates</button>
+  <button class="nav-item" data-page="proof"><span class="ico">📊</span>Story, Stats &amp; References</button>
+
+  <p class="group-label">Workspace</p>
+  <button class="nav-item" data-page="notes"><span class="ico">📝</span>Call Notes</button>
+
+  <div class="account">
+    <p class="email" id="userEmail">…</p>
+    <div class="row">
+      <button onclick="openBillingPortal()">Billing</button>
+      <button onclick="bdrSignOut()">Sign out</button>
+    </div>
+  </div>
+</aside>
+
+<main>
+
+  <!-- ============ ACCOUNT INTELLIGENCE ============ -->
+  <div class="page show" id="page-intel">
+    <div class="page-head">
+      <p class="kicker">AI · live web research</p>
+      <h1>Account Intelligence</h1>
+      <p>Type a company. Get a researched brief and the people who can say yes — each with outreach ready to send.</p>
+    </div>
+    <div class="search-row">
+      <input type="text" value="Meridian Building Supply" aria-label="Company name">
+      <button class="btn">Research account</button>
+    </div>
+    <div class="card">
+      <h3>Company brief</h3>
+      <p class="muted">Regional building-products distributor, ~$480M revenue, 11 DCs across the Southeast. Announced a new 400k sq ft facility in March and posted three warehouse-systems roles last month — classic signals of a WMS evaluation window. Running a legacy ERP with bolt-on warehouse module; peak-season backorder complaints visible in customer reviews.</p>
+    </div>
+    <div class="persona-grid">
+      <div class="persona">
+        <span class="tag">Decision maker</span>
+        <div class="role">VP, Supply Chain</div>
+        <p class="why">Owns the new-facility timeline. Pain: visibility across 11 sites. Hook: go-live risk on the new DC.</p>
+        <div class="actions"><button class="btn mini dark">✉ Email</button><button class="btn mini ghost">🎙 Talk track</button><button class="btn mini ghost">in LinkedIn</button></div>
+      </div>
+      <div class="persona">
+        <span class="tag">Champion</span>
+        <div class="role">Director, DC Operations</div>
+        <p class="why">Feels the labor math daily. Hook: productivity reference — 40% gain, 9,000 hours saved annually.</p>
+        <div class="actions"><button class="btn mini dark">✉ Email</button><button class="btn mini ghost">🎙 Talk track</button><button class="btn mini ghost">in LinkedIn</button></div>
+      </div>
+      <div class="persona">
+        <span class="tag">Influencer</span>
+        <div class="role">VP, Information Technology</div>
+        <p class="why">Gatekeeper on integration. Hook: rides on top of the existing ERP — no rip-and-replace.</p>
+        <div class="actions"><button class="btn mini dark">✉ Email</button><button class="btn mini ghost">🎙 Talk track</button><button class="btn mini ghost">in LinkedIn</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ AI CALL COACH ============ -->
+  <div class="page" id="page-coach">
+    <div class="page-head">
+      <p class="kicker">AI · streaming</p>
+      <h1>AI Call Coach</h1>
+      <p>Paste what the prospect just said — or keep this open on a second screen — and get the next move in real time.</p>
+    </div>
+    <div class="search-row">
+      <input type="text" value="&quot;We just finished an ERP migration, the team is burnt out on projects&quot;" aria-label="What the prospect said">
+      <button class="btn dark">Coach me</button>
+    </div>
+    <div class="coach-wrap"><span class="lbl">Coach</span><span id="coachType"></span><span class="cur"></span></div>
+    <div class="card" style="margin-top:14px">
+      <h3>Session tips</h3>
+      <p class="muted">The coach reads your call notes for context, so log conversations as you go — recommendations get sharper the more it knows about the account.</p>
+    </div>
+  </div>
+
+  <!-- ============ EVENT OUTREACH ============ -->
+  <div class="page" id="page-event">
+    <div class="page-head">
+      <p class="kicker">AI generator</p>
+      <h1>Event Outreach</h1>
+      <p>Four inputs in, a full pre/post-event sequence out. Built for trade-show season.</p>
+    </div>
+    <div class="card">
+      <div class="note-meta">
+        <input value="MODEX 2026" aria-label="Event name">
+        <input value="Booth A2232" aria-label="Booth">
+        <input value="Mar 16–19" aria-label="Dates">
+        <input value="VP Supply Chain" aria-label="Target persona">
+      </div>
+      <button class="btn">Generate sequence</button>
+    </div>
+    <div class="two-col">
+      <div class="card"><h3>Pre-event touch 1 · 3 weeks out</h3><p class="muted">"Saw your team is registered for MODEX — we're at booth A2232 running live demos of robotics orchestration. Worth 15 minutes between sessions? Happy to hold a slot…"</p></div>
+      <div class="card"><h3>Post-event follow-up · day after</h3><p class="muted">"Great meeting you at the booth — you mentioned the new facility timeline. Here's the customer story I promised, plus the 2-pager on go-live risk…"</p></div>
+    </div>
+  </div>
+
+  <!-- ============ INTENT FEED ============ -->
+  <div class="page" id="page-feed">
+    <div class="page-head">
+      <p class="kicker">Live signals</p>
+      <h1>Intent Feed</h1>
+      <p>Buying signals across your territory, scored so the hottest accounts rise to the top of your day.</p>
+    </div>
+    <div class="card">
+      <div class="feed-item hot"><span class="feed-dot"></span><div><div class="co">Meridian Building Supply</div><div class="sig">New 400k sq ft DC announced + 3 warehouse-systems job postings</div></div><span class="score">92</span><span class="when">2h ago</span></div>
+      <div class="feed-item hot"><span class="feed-dot"></span><div><div class="co">Gulfstream Electrical Wholesale</div><div class="sig">WMS intent surge, 14 research touches this week</div></div><span class="score">88</span><span class="when">5h ago</span></div>
+      <div class="feed-item"><span class="feed-dot"></span><div><div class="co">Crestline MRO Holdings</div><div class="sig">Acquisition closed — integration window opening</div></div><span class="score">74</span><span class="when">1d ago</span></div>
+      <div class="feed-item"><span class="feed-dot"></span><div><div class="co">Northpoint Foods Distribution</div><div class="sig">New VP Supply Chain started this month</div></div><span class="score">69</span><span class="when">2d ago</span></div>
+      <div class="feed-item"><span class="feed-dot"></span><div><div class="co">Bayline Industrial Supply</div><div class="sig">Robotics RFP language detected on careers page</div></div><span class="score">61</span><span class="when">3d ago</span></div>
+    </div>
+  </div>
+
+  <!-- ============ CALL SCRIPTS ============ -->
+  <div class="page" id="page-scripts">
+    <div class="page-head">
+      <p class="kicker">Playbook</p>
+      <h1>Call Scripts</h1>
+      <p>Openers, gatekeeper paths, voicemails, booking language, and discovery — versioned and ready.</p>
+    </div>
+    <details open><summary>Cold open · pattern interrupt</summary><div class="body">"Hey, it's <em>[name]</em> — you weren't expecting my call, so I'll be quick. I work with distribution ops leaders on <em>[specific pain from intel]</em>. Did I catch you at a terrible time, or just a bad one?"</div></details>
+    <details><summary>Gatekeeper path</summary><div class="body">"I promised <em>[exec]</em>'s team a benchmark before Friday — could you point me to whoever owns her calendar?"</div></details>
+    <details><summary>Voicemail · 18 seconds</summary><div class="body">"<em>[Name]</em>, one idea about the new facility and a number worth hearing: 9,000 hours. I'll try you Thursday at 10 — or grab me sooner at <em>[number]</em>."</div></details>
+    <details><summary>Booking the meeting</summary><div class="body">"Sounds like there's something here. I'm not asking you to evaluate anything — 20 minutes with our solutions consultant to pressure-test the math. Tuesday or Thursday better?"</div></details>
+    <details><summary>Discovery questions</summary><div class="body">What does a mis-ship cost you today? · Who feels peak season first? · If the new facility slips a quarter, what breaks? · What did the last systems project teach the team?</div></details>
+  </div>
+
+  <!-- ============ OBJECTIONS ============ -->
+  <div class="page" id="page-objections">
+    <div class="page-head">
+      <p class="kicker">Playbook</p>
+      <h1>Objection Handling</h1>
+      <p>The counters that work, organized by objection — not by wishful thinking.</p>
+    </div>
+    <details open><summary>"We just did a big systems project"</summary><div class="body">Validate, then reframe: "That's exactly why this works — it <em>rides on top of</em> what you just built. The question is what the DC team gave up in the migration."</div></details>
+    <details><summary>"No budget this year"</summary><div class="body">"Totally fair. What's the manual workaround costing in the meantime? If the math says the do-nothing option is the expensive one, the budget conversation changes."</div></details>
+    <details><summary>"Send me some information"</summary><div class="body">"Happy to — but generic decks waste your time. Give me 90 seconds on your pick process and I'll send the one page that's actually relevant."</div></details>
+    <details><summary>"We're happy with our current system"</summary><div class="body">"Most of our best customers were too — until they saw what 'happy' was costing per order. Worth a benchmark just to know your number?"</div></details>
+  </div>
+
+  <!-- ============ EMAILS ============ -->
+  <div class="page" id="page-emails">
+    <div class="page-head">
+      <p class="kicker">Playbook</p>
+      <h1>Email Templates</h1>
+      <p>Proven frames for cold touch, follow-up, and break-up. Edit, don't start from blank.</p>
+    </div>
+    <div class="two-col">
+      <div class="card"><h3>Cold · trigger-based</h3><p class="muted">Subject: <b>[new facility] go-live risk</b><br><br>"Saw the announcement — congrats. Most teams discover the systems gap 90 days before go-live, when it's expensive. One customer banked a 40% productivity gain by solving it early. Worth 15 minutes?"</p></div>
+      <div class="card"><h3>Break-up · last touch</h3><p class="muted">Subject: <b>closing the loop</b><br><br>"Haven't heard back, so I'll assume timing's off. One ask: when warehouse systems come up at planning time, keep this thread. The benchmark offer stands."</p></div>
+    </div>
+  </div>
+
+  <!-- ============ PROOF ============ -->
+  <div class="page" id="page-proof">
+    <div class="page-head">
+      <p class="kicker">Playbook</p>
+      <h1>Story, Stats &amp; References</h1>
+      <p>Customer proof at your fingertips mid-conversation.</p>
+    </div>
+    <div class="two-col">
+      <div class="card"><h3>Flagship reference</h3><p class="muted">Industrial fastener distributor: <b>40% productivity increase</b>, <b>9,000+ hours saved annually</b> after go-live. Use when labor math comes up.</p></div>
+      <div class="card"><h3>Analyst standing</h3><p class="muted">Recognized as a market <b>Leader 8 consecutive years</b> by the major analyst firm. Use to de-risk the shortlist conversation.</p></div>
+    </div>
+  </div>
+
+  <!-- ============ NOTES ============ -->
+  <div class="page" id="page-notes">
+    <div class="page-head">
+      <p class="kicker">Workspace</p>
+      <h1>Call Notes</h1>
+      <p>Log every conversation where you work. Context compounds — the next call starts where the last one ended.</p>
+    </div>
+    <div class="card">
+      <div class="note-meta">
+        <input placeholder="Company" value="Meridian Building Supply">
+        <input placeholder="Contact" value="VP, Supply Chain">
+        <input placeholder="Date" value="Jun 10, 2026">
+      </div>
+      <textarea>Connected on 2nd attempt. New facility timeline confirmed for Q1 '27. Burnt out on projects post-ERP — lead with "rides on top" framing. Asked for the productivity reference. Next step: send 2-pager, follow up Thursday 10am.</textarea>
+      <div style="margin-top:12px"><button class="btn dark">Save note</button></div>
+    </div>
+    <div class="card">
+      <h3>Previous · Jun 3</h3>
+      <p class="muted">Gatekeeper round. EA confirmed VP owns the facility decision. Best window: Tue/Thu mornings.</p>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// show the signed-in user's email once the gate confirms them
+function paintUser(){
+  if(window.BDR_USER) document.getElementById("userEmail").textContent = window.BDR_USER.email;
+}
+document.addEventListener("bdr-user-ready", paintUser);
+paintUser(); // in case gate finished before this script ran
+
+// welcome toast after first arrival from checkout/signup
+if(new URLSearchParams(location.search).has("welcome")){
+  const t = document.getElementById("welcomeToast");
+  requestAnimationFrame(()=>t.classList.add("in"));
+  setTimeout(()=>t.classList.remove("in"), 3800);
+  history.replaceState(null,"",location.pathname);
+}
+
+// tab switching
+document.querySelectorAll(".nav-item").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".nav-item").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("show"));
+    document.getElementById("page-"+btn.dataset.page).classList.add("show");
+    document.querySelector("aside").classList.remove("open");
+    window.scrollTo({top:0});
+  });
+});
+
+// coach typing demo
+const lines = [
+  "They're project-fatigued, not uninterested. Don't pitch an implementation — pitch a benchmark. Say: \u201CNo project, no evaluation. 20 minutes to pressure-test the math on the new facility.\u201D Then stop talking.",
+  "Burnout objection usually hides a champion. Ask: \u201CWhat did the last project teach the team?\u201D — whoever answers with specifics is your internal seller.",
+];
+const target = document.getElementById("coachType");
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduced){ target.textContent = lines[0]; }
+else{
+  let li=0, ci=0;
+  (function type(){
+    const line = lines[li];
+    target.textContent = line.slice(0, ++ci);
+    if(ci===line.length){ ci=0; li=(li+1)%lines.length; return setTimeout(()=>{target.textContent="";type();}, 3400); }
+    setTimeout(type, 24 + Math.random()*30);
+  })();
+}
+</script>
+</body>
+</html>

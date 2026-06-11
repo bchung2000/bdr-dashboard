@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — BDR Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+:root{
+  --porcelain:#EDF1F5;--ink:#101720;--slate:#56687C;--signal:#E8402A;
+  --live:#16B877;--card:#FFFFFF;--line:#D8E0E8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--porcelain);color:var(--ink);
+  font-family:"Instrument Sans",sans-serif;min-height:100svh;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px;border-radius:6px}
+.blob{position:fixed;border-radius:50%;filter:blur(90px);opacity:.5;z-index:-1;pointer-events:none}
+.blob-a{width:480px;height:480px;background:#FFD9CF;top:-140px;right:-100px}
+.blob-b{width:380px;height:380px;background:#D2E9DE;bottom:-120px;left:-120px}
+.panel{
+  width:min(420px,100%);background:var(--card);border:1px solid var(--line);
+  border-radius:24px;padding:38px;box-shadow:0 24px 60px rgba(16,23,32,.1);
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:"Archivo",sans-serif;font-weight:800;font-variation-settings:"wght" 760;letter-spacing:-.02em;margin-bottom:8px;text-decoration:none;color:var(--ink)}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--live)}
+.mode-pill{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);background:var(--porcelain);border-radius:99px;padding:4px 12px;display:inline-block;margin-bottom:22px}
+.tabs{display:flex;background:var(--porcelain);border-radius:999px;padding:4px;margin-bottom:24px}
+.tabs button{
+  flex:1;border:0;background:transparent;padding:9px;border-radius:999px;cursor:pointer;
+  font-family:inherit;font-size:14.5px;font-weight:600;color:var(--slate);transition:all .2s;
+}
+.tabs button.active{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(16,23,32,.1)}
+label{display:block;font-size:13.5px;font-weight:600;margin:14px 0 6px}
+input{
+  width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;
+  font-family:inherit;font-size:15px;background:#FAFCFE;
+}
+input:focus{border-color:var(--ink);outline:none}
+.submit{
+  width:100%;margin-top:22px;padding:13px;border:0;border-radius:999px;cursor:pointer;
+  background:var(--signal);color:#fff;font-family:inherit;font-size:15.5px;font-weight:600;
+  transition:transform .2s,box-shadow .2s;
+}
+.submit:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(232,64,42,.35)}
+.submit:disabled{opacity:.6;transform:none;box-shadow:none;cursor:wait}
+.msg{margin-top:14px;font-size:14px;display:none;padding:11px 14px;border-radius:12px}
+.msg.err{display:block;background:#FBE6E1;color:#A82812}
+.msg.ok{display:block;background:#DEF5EA;color:#0B6B45}
+.fine{margin-top:18px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--slate);text-align:center}
+.fine a{color:var(--slate)}
+</style>
+</head>
+<body>
+<div class="blob blob-a" aria-hidden="true"></div>
+<div class="blob blob-b" aria-hidden="true"></div>
+
+<main class="panel">
+  <a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>BDR Command Center</a>
+  <span class="mode-pill" id="modePill"></span>
+
+  <div class="tabs" role="tablist">
+    <button id="tabIn" class="active" role="tab" aria-selected="true">Sign in</button>
+    <button id="tabUp" role="tab" aria-selected="false">Create account</button>
+  </div>
+
+  <form id="form">
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="email" required placeholder="you@company.com">
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required minlength="8" placeholder="8+ characters">
+    <button class="submit" id="submitBtn" type="submit">Sign in</button>
+    <div class="msg" id="msg" role="alert"></div>
+  </form>
+
+  <p class="fine" id="fineNote"></p>
+</main>
+
+<script>
+const LIVE = !!(BDR_CONFIG && BDR_CONFIG.API);
+const API = LIVE ? BDR_CONFIG.API : null;
+
+document.getElementById("modePill").textContent = LIVE ? "Secure sign in" : "Demo mode";
+document.getElementById("fineNote").innerHTML = LIVE
+  ? 'New accounts go straight to checkout · cancel anytime<br><a href="index.html#pricing">See pricing</a>'
+  : 'Demo: accounts live only in this browser · checkout is simulated<br><a href="index.html#pricing">See pricing</a>';
+
+let mode = "in";
+const tabIn = document.getElementById("tabIn");
+const tabUp = document.getElementById("tabUp");
+const submitBtn = document.getElementById("submitBtn");
+const msg = document.getElementById("msg");
+const pw = document.getElementById("password");
+
+function setMode(m){
+  mode = m;
+  tabIn.classList.toggle("active", m==="in");
+  tabUp.classList.toggle("active", m==="up");
+  tabIn.setAttribute("aria-selected", m==="in");
+  tabUp.setAttribute("aria-selected", m==="up");
+  submitBtn.textContent = m==="in" ? "Sign in" : (LIVE ? "Create account & subscribe" : "Create account");
+  pw.autocomplete = m==="in" ? "current-password" : "new-password";
+  msg.className = "msg";
+}
+tabIn.onclick = () => setMode("in");
+tabUp.onclick = () => setMode("up");
+function show(kind, text){ msg.className = "msg " + kind; msg.textContent = text; }
+
+// ---------- demo-mode account helpers ----------
+async function sha256(text){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function demoUsers(){ return JSON.parse(localStorage.getItem("bdr_demo_users") || "{}"); }
+function demoSubs(){ return JSON.parse(localStorage.getItem("bdr_demo_subs") || "{}"); }
+
+async function demoSubmit(email, password){
+  const users = demoUsers();
+  const subs = demoSubs();
+  const hash = await sha256(password);
+
+  if(mode === "up"){
+    if(users[email]) { show("err","An account with that email already exists — try signing in"); return; }
+    users[email] = hash;
+    subs[email] = "active"; // demo simulates a successful checkout
+    localStorage.setItem("bdr_demo_users", JSON.stringify(users));
+    localStorage.setItem("bdr_demo_subs", JSON.stringify(subs));
+    localStorage.setItem("bdr_demo_session", email);
+    show("ok","Account created — checkout simulated ✓ Opening your dashboard…");
+    setTimeout(()=>{ window.location.href = "app.html?welcome=1"; }, 900);
+    return;
+  }
+
+  if(!users[email] || users[email] !== hash){
+    show("err","Email or password is incorrect" + (Object.keys(users).length===0 ? " — no demo accounts exist in this browser yet, create one first" : ""));
+    submitBtn.disabled = false;
+    return;
+  }
+  localStorage.setItem("bdr_demo_session", email);
+  if(subs[email] !== "active"){ window.location.href = "index.html#pricing"; return; }
+  show("ok","Welcome back — opening your dashboard…");
+  setTimeout(()=>{ window.location.href = "app.html"; }, 600);
+}
+
+// ---------- live-mode submit ----------
+async function liveSubmit(email, password){
+  const body = JSON.stringify({ email, password });
+  const r = await fetch(API + (mode==="in" ? "/api/login" : "/api/signup"), {
+    method:"POST", headers:{ "Content-Type":"application/json" }, body
+  });
+  const data = await r.json();
+  if(!r.ok){ show("err", data.error || "Something went wrong"); submitBtn.disabled=false; return; }
+  localStorage.setItem("bdr_token", data.token);
+
+  if(mode === "up"){
+    show("ok","Account created — opening secure checkout…");
+    const c = await fetch(API + "/api/create-checkout-session", { method:"POST", headers:{ Authorization:"Bearer "+data.token } });
+    const cd = await c.json();
+    if(cd.url){ window.location.href = cd.url; return; }
+    show("err", cd.error || "Could not open checkout"); submitBtn.disabled=false; return;
+  }
+
+  const me = await fetch(API + "/api/me", { headers:{ Authorization:"Bearer "+data.token } }).then(r=>r.json());
+  if(me.subscription === "active"){ window.location.href = "app.html"; return; }
+  show("ok","Signed in — finishing your subscription…");
+  const c = await fetch(API + "/api/create-checkout-session", { method:"POST", headers:{ Authorization:"Bearer "+data.token } });
+  const cd = await c.json();
+  if(cd.url) window.location.href = cd.url;
+  else { show("err","Could not open checkout"); submitBtn.disabled=false; }
+}
+
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  submitBtn.disabled = true;
+  msg.className = "msg";
+  const email = document.getElementById("email").value.toLowerCase().trim();
+  const password = pw.value;
+  try {
+    if(LIVE) await liveSubmit(email, password);
+    else await demoSubmit(email, password);
+  } catch {
+    show("err", LIVE ? "Can't reach the server — check your connection and try again" : "Something went wrong — try again");
+    submitBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
