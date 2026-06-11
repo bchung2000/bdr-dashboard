@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDR Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --porcelain:#EDF1F5;--ink:#101720;--slate:#56687C;--signal:#E8402A;--signal-soft:#FBE6E1;
+  --live:#16B877;--live-soft:#DEF5EA;--card:#FFFFFF;--line:#D8E0E8;--radius:16px;
+  --font-display:"Archivo",sans-serif;--font-body:"Instrument Sans",sans-serif;--font-mono:"IBM Plex Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--porcelain);color:var(--ink);font-family:var(--font-body);font-size:15.5px;line-height:1.55;display:flex;min-height:100vh}
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px;border-radius:6px}
+button,input,textarea,select{font-family:inherit}
+
+/* ---- sidebar ---- */
+aside{width:248px;flex:none;background:var(--card);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 14px 14px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-variation-settings:"wght" 780;letter-spacing:-.02em;font-size:15.5px;padding:10px 10px 18px}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:var(--live);animation:pulse 2.2s infinite;flex:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(22,184,119,.45)}70%{box-shadow:0 0 0 10px rgba(22,184,119,0)}100%{box-shadow:0 0 0 0 rgba(22,184,119,0)}}
+.group-label{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);padding:14px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:9px 10px;font-size:14.5px;font-weight:500;color:var(--slate);cursor:pointer;transition:background .15s,color .15s}
+.nav-item:hover{background:var(--porcelain);color:var(--ink)}
+.nav-item.active{background:var(--signal-soft);color:var(--signal);font-weight:600}
+.nav-item .ico{width:18px;text-align:center;flex:none}
+.ai-chip{margin-left:auto;font-family:var(--font-mono);font-size:9.5px;background:var(--ink);color:#fff;border-radius:99px;padding:2px 7px;letter-spacing:.06em}
+.account{margin-top:auto;border-top:1px solid var(--line);padding-top:12px}
+.account .email{font-family:var(--font-mono);font-size:11.5px;color:var(--slate);padding:4px 10px 8px;word-break:break-all}
+.account .row{display:flex;gap:8px;padding:0 8px}
+.account .row button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:99px;font-size:12.5px;font-weight:600;padding:7px;color:var(--slate);cursor:pointer;transition:border-color .15s,color .15s}
+.account .row button:hover{border-color:var(--ink);color:var(--ink)}
+
+/* ---- api key modal ---- */
+.modal-bg{position:fixed;inset:0;background:rgba(16,23,32,.55);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--card);border-radius:20px;padding:32px;width:min(440px,100%);box-shadow:0 24px 60px rgba(16,23,32,.2)}
+.modal h2{font-family:var(--font-display);font-variation-settings:"wght" 720;font-size:1.3rem;margin-bottom:8px}
+.modal p{color:var(--slate);font-size:14px;margin-bottom:20px}
+.modal input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;font-size:15px;font-family:var(--font-mono);margin-bottom:14px}
+.modal input:focus{border-color:var(--ink);outline:none}
+.modal .fine{font-family:var(--font-mono);font-size:11.5px;color:var(--slate);margin-top:10px}
+
+/* ---- main ---- */
+main{flex:1;padding:28px 28px 40px;max-width:1060px;overflow-x:hidden}
+.page{display:none}
+.page.show{display:block;animation:fadeUp .3s cubic-bezier(.2,.7,.3,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.page-head{margin-bottom:22px}
+.page-head .kicker{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal);margin-bottom:6px}
+.page-head h1{font-family:var(--font-display);font-size:1.85rem;letter-spacing:-.025em;font-variation-settings:"wght" 740,"wdth" 106}
+.page-head p{color:var(--slate);max-width:64ch;margin-top:6px;font-size:15px}
+
+/* ---- shared components ---- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:14px}
+.card h3{font-family:var(--font-display);font-variation-settings:"wght" 680;font-size:1.05rem;margin-bottom:8px}
+.muted{color:var(--slate);font-size:14.5px}
+.search-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.search-row input{flex:1;min-width:200px;padding:13px 16px;border:1.5px solid var(--line);border-radius:12px;font-size:15px;background:#fff}
+.search-row input:focus{border-color:var(--ink);outline:none}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--signal);color:#fff;border:0;font-weight:600;font-size:14.5px;padding:12px 22px;border-radius:99px;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(232,64,42,.3)}
+.btn:disabled{opacity:.55;transform:none;box-shadow:none;cursor:wait}
+.btn.dark{background:var(--ink)}
+.btn.mini{padding:7px 14px;font-size:12.5px}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--ink);box-shadow:none}
+.tag{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--signal);background:var(--signal-soft);display:inline-block;padding:3px 9px;border-radius:99px;margin-bottom:10px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ---- streaming output ---- */
+.ai-output{background:var(--ink);color:#D7E4DF;border-radius:var(--radius);padding:20px;font-family:var(--font-mono);font-size:13.5px;line-height:1.7;white-space:pre-wrap;min-height:80px;margin-top:14px;display:none}
+.ai-output.visible{display:block}
+.ai-output .lbl{color:var(--live);font-size:10px;letter-spacing:.14em;text-transform:uppercase;display:block;margin-bottom:10px}
+.cur{display:inline-block;width:7px;height:13px;background:var(--live);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---- persona cards ---- */
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:16px}
+.persona{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;transition:transform .2s,box-shadow .2s}
+.persona:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(16,23,32,.09)}
+.persona .role{font-family:var(--font-display);font-variation-settings:"wght" 700;font-size:1.02rem;margin-bottom:6px}
+.persona .why{color:var(--slate);font-size:13.5px;margin-bottom:14px}
+.persona .actions{display:flex;gap:7px;flex-wrap:wrap}
+
+/* ---- intent feed ---- */
+.feed-item{display:flex;gap:13px;align-items:flex-start;padding:14px 4px;border-bottom:1px solid var(--line)}
+.feed-item:last-child{border:0}
+.feed-dot{width:8px;height:8px;border-radius:50%;background:var(--live);flex:none;margin-top:6px}
+.feed-item.hot .feed-dot{background:var(--signal)}
+.feed-item .co{font-weight:600;font-size:14.5px}
+.feed-item .sig{color:var(--slate);font-size:13.5px}
+.feed-item .when{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:var(--slate);flex:none}
+.score{font-family:var(--font-mono);font-size:11px;border-radius:99px;padding:2px 9px;background:var(--live-soft);color:#0B6B45;flex:none;margin-top:2px}
+.feed-item.hot .score{background:var(--signal-soft);color:#A82812}
+
+/* ---- accordion ---- */
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+summary{padding:15px 18px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-size:15px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--font-mono);color:var(--slate)}
+details[open] summary::after{content:"–"}
+details .body{padding:0 18px 16px;color:var(--slate);font-size:14.5px;line-height:1.65}
+details .body em{color:var(--ink);font-style:normal;font-weight:600}
+
+/* ---- notes ---- */
+textarea{width:100%;min-height:120px;border:1.5px solid var(--line);border-radius:12px;padding:14px;font-size:14.5px;resize:vertical;background:#fff}
+textarea:focus{border-color:var(--ink);outline:none}
+.note-meta{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.note-meta input{flex:1;min-width:130px;padding:10px 13px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;background:#fff}
+.note-meta input:focus{border-color:var(--ink);outline:none}
+.saved-note{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:10px}
+.saved-note .meta{font-family:var(--font-mono);font-size:11.5px;color:var(--slate);margin-bottom:8px}
+.saved-note .text{font-size:14.5px;color:var(--ink)}
+
+/* ---- spinner ---- */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- responsive ---- */
+@media(max-width:860px){
+  aside{position:fixed;left:-260px;transition:left .25s;z-index:60;box-shadow:none}
+  aside.open{left:0;box-shadow:0 0 60px rgba(16,23,32,.3)}
+  .menu-btn{display:flex!important}
+  main{padding:60px 16px 30px}
+  .two-col{grid-template-columns:1fr}
+}
+.menu-btn{display:none;position:fixed;top:14px;left:12px;z-index:70;background:var(--ink);color:#fff;border:0;border-radius:99px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="document.querySelector('aside').classList.toggle('open')">☰ Menu</button>
+
+<!-- API KEY MODAL -->
+<div class="modal-bg" id="keyModal">
+  <div class="modal">
+    <h2>Enter your Anthropic API key</h2>
+    <p>Your key is stored only in this browser and never sent anywhere except directly to Anthropic. You can update it anytime from the sidebar.</p>
+    <input type="password" id="keyInput" placeholder="sk-ant-..." autocomplete="off">
+    <button class="btn" style="width:100%" onclick="saveKey()">Save & continue</button>
+    <p class="fine">Get a key at console.anthropic.com · ~$0.003 per request</p>
+  </div>
+</div>
+
+<aside>
+  <div class="brand"><span class="brand-dot"></span>BDR Command Center</div>
+
+  <p class="group-label">AI Tools</p>
+  <button class="nav-item active" data-page="intel"><span class="ico">🎯</span>Account Intelligence<span class="ai-chip">AI</span></button>
+  <button class="nav-item" data-page="coach"><span class="ico">🎙</span>AI Call Coach<span class="ai-chip">AI</span></button>
+  <button class="nav-item" data-page="event"><span class="ico">📍</span>Event Outreach<span class="ai-chip">AI</span></button>
+  <button class="nav-item" data-page="feed"><span class="ico">📡</span>Intent Feed<span class="ai-chip">AI</span></button>
+
+  <p class="group-label">Playbook</p>
+  <button class="nav-item" data-page="scripts"><span class="ico">📞</span>Call Scripts</button>
+  <button class="nav-item" data-page="objections"><span class="ico">🛡</span>Objection Handling</button>
+  <button class="nav-item" data-page="emails"><span class="ico">✉️</span>Email Templates</button>
+  <button class="nav-item" data-page="proof"><span class="ico">📊</span>Story, Stats & References</button>
+
+  <p class="group-label">Workspace</p>
+  <button class="nav-item" data-page="notes"><span class="ico">📝</span>Call Notes</button>
+
+  <div class="account">
+    <p class="email" id="apiKeyStatus">No API key set</p>
+    <div class="row">
+      <button onclick="changeKey()">API Key</button>
+      <button onclick="clearKey()">Clear</button>
+    </div>
+  </div>
+</aside>
+
+<main>
+
+  <!-- ====== ACCOUNT INTELLIGENCE ====== -->
+  <div class="page show" id="page-intel">
+    <div class="page-head">
+      <p class="kicker">AI · live research</p>
+      <h1>Account Intelligence</h1>
+      <p>Type a company name. Get a researched brief, decision-maker personas, and one-click outreach for each.</p>
+    </div>
+    <div class="search-row">
+      <input type="text" id="intelCompany" placeholder="e.g. Sonepar US, Van Meter, Core and Main…" aria-label="Company name">
+      <button class="btn" id="intelBtn" onclick="runIntel()">Research account</button>
+    </div>
+    <div id="intelBrief"></div>
+    <div class="persona-grid" id="personaGrid"></div>
+    <div class="ai-output" id="intelOutreach">
+      <span class="lbl" id="outreachLabel">Output</span>
+      <span id="outreachText"></span><span class="cur" id="outreachCur" style="display:none"></span>
+    </div>
+  </div>
+
+  <!-- ====== AI CALL COACH ====== -->
+  <div class="page" id="page-coach">
+    <div class="page-head">
+      <p class="kicker">AI · streaming</p>
+      <h1>AI Call Coach</h1>
+      <p>Paste what the prospect just said, or describe where you're stuck. Get the next move instantly.</p>
+    </div>
+    <div class="search-row">
+      <input type="text" id="coachInput" placeholder="e.g. They said they just finished an ERP migration and the team is burnt out…" aria-label="Prospect objection or situation">
+      <button class="btn dark" id="coachBtn" onclick="runCoach()">Coach me</button>
+    </div>
+    <div class="ai-output visible" id="coachOutput">
+      <span class="lbl">Coach</span>
+      <span id="coachText">Your coaching will appear here. Describe the situation or paste what the prospect said.</span>
+    </div>
+  </div>
+
+  <!-- ====== EVENT OUTREACH ====== -->
+  <div class="page" id="page-event">
+    <div class="page-head">
+      <p class="kicker">AI generator</p>
+      <h1>Event Outreach Generator</h1>
+      <p>Four inputs in, a full pre/post-event sequence out. Built for trade-show season.</p>
+    </div>
+    <div class="card">
+      <div class="note-meta">
+        <input type="text" id="eventName" placeholder="Event name (e.g. MODEX 2026)" aria-label="Event name">
+        <input type="text" id="eventBooth" placeholder="Booth # (e.g. A2232)" aria-label="Booth number">
+        <input type="text" id="eventDates" placeholder="Dates (e.g. Mar 16–19)" aria-label="Event dates">
+        <input type="text" id="eventPersona" placeholder="Target persona (e.g. VP Supply Chain)" aria-label="Target persona">
+      </div>
+      <button class="btn" id="eventBtn" onclick="runEvent()">Generate sequence</button>
+    </div>
+    <div class="ai-output" id="eventOutput">
+      <span class="lbl">Generated sequence</span>
+      <span id="eventText"></span><span class="cur" id="eventCur" style="display:none"></span>
+    </div>
+  </div>
+
+  <!-- ====== INTENT FEED ====== -->
+  <div class="page" id="page-feed">
+    <div class="page-head">
+      <p class="kicker">AI · signal analysis</p>
+      <h1>Live Intent Feed</h1>
+      <p>Paste raw ZoomInfo intent data or describe signals you're seeing. Get a prioritized action plan.</p>
+    </div>
+    <div class="card">
+      <h3>Paste intent signals</h3>
+      <textarea id="feedInput" placeholder="Paste ZoomInfo intent export, company names + signals, or describe what you're seeing across accounts…" style="min-height:140px"></textarea>
+      <button class="btn dark" style="margin-top:12px" id="feedBtn" onclick="runFeed()">Analyze & prioritize</button>
+    </div>
+    <div class="ai-output" id="feedOutput">
+      <span class="lbl">Prioritized action plan</span>
+      <span id="feedText"></span><span class="cur" id="feedCur" style="display:none"></span>
+    </div>
+  </div>
+
+  <!-- ====== CALL SCRIPTS ====== -->
+  <div class="page" id="page-scripts">
+    <div class="page-head">
+      <p class="kicker">Playbook</p>
+      <h1>Call Scripts</h1>
+      <p>Openers, gatekeeper paths, voicemails, booking language, and discovery — ready to use.</p>
+    </div>
+    <details open>
+      <summary>Cold open · pattern interrupt</summary>
+      <div class="body">"Hey, it's <em>[your name]</em> — you weren't expecting my call, so I'll be quick. I work with distribution ops leaders on <em>[specific pain from intel]</em>. Did I catch you at a terrible time, or just a bad one?"</div>
+    </details>
+    <details>
+      <summary>Cold open · referral/trigger</summary>
+      <div class="body">"Hi <em>[name]</em>, I came across the announcement about your new facility in <em>[location]</em> — congrats on the expansion. I work with DC leaders who are in that exact build-out phase and I had one idea worth 60 seconds. Is now okay?"</div>
+    </details>
+    <details>
+      <summary>Gatekeeper path</summary>
+      <div class="body">"I promised <em>[exec]</em>'s team a benchmark before Friday — could you point me to whoever owns her calendar?" <br><br>If pushed: "I'm following up on a conversation about the new facility timeline. I just need 20 minutes — who's the best person to schedule through?"</div>
+    </details>
+    <details>
+      <summary>Voicemail · 18 seconds</summary>
+      <div class="body">"<em>[Name]</em>, one idea about the new facility and a number worth hearing: 9,000 hours. I'll try you Thursday at 10 — or grab me sooner at <em>[your number]</em>."</div>
+    </details>
+    <details>
+      <summary>Booking the meeting</summary>
+      <div class="body">"Sounds like there's something here. I'm not asking you to evaluate anything — 20 minutes with our solutions consultant to pressure-test the math on your operation. Tuesday or Thursday better?"</div>
+    </details>
+    <details>
+      <summary>Discovery questions</summary>
+      <div class="body">
+        • What does a mis-ship cost you today — in dollars and in customer relationships?<br>
+        • Who feels peak season first — ops, IT, or finance?<br>
+        • If the new facility slips a quarter, what breaks?<br>
+        • What did the last systems project teach the team about what to avoid?<br>
+        • Walk me through a typical order from receipt to ship — where does it slow down?<br>
+        • What's your current visibility across sites look like?
+      </div>
+    </details>
+    <details>
+      <summary>Executive intro (NAED / trade show follow-up)</summary>
+      <div class="body">"Great meeting you at <em>[event]</em>. You mentioned <em>[specific thing they said]</em> — that's exactly the problem we solve. I'd like to get 20 minutes with you and your DC team to show you what that looks like in practice. What does your calendar look like next week?"</div>
+    </details>
+  </div>
+
+  <!-- ====== OBJECTION HANDLING ====== -->
+  <div class="page" id="page-objections">
+    <div class="page-head">
+      <p class="kicker">Playbook</p>
+      <h1>Objection Handling</h1>
+      <p>The counters that actually work — organized by objection.</p>
+    </div>
+    <details open>
+      <summary>"We just did a big systems project / ERP migration"</summary>
+      <div class="body">Validate, then reframe: <em>"That's exactly why this works — WMS rides on top of what you just built. The question is what the DC team gave up in the migration. Most ERP implementations deprioritize warehouse execution to hit the go-live date. Is that what happened here?"</em></div>
+    </details>
+    <details>
+      <summary>"We're happy with our current system"</summary>
+      <div class="body"><em>"Most of our best customers said the same thing — until they saw what 'happy' was costing per order. We've got a customer in your exact vertical who thought the same thing and found $2M in operational waste in a 90-day assessment. Worth a benchmark just to know your number?"</em></div>
+    </details>
+    <details>
+      <summary>"No budget this year"</summary>
+      <div class="body"><em>"Totally fair. What's the manual workaround costing in the meantime? If the math says the do-nothing option is the expensive one, the budget conversation changes. I'm not asking for a commitment — just the numbers to make that case internally if it makes sense."</em></div>
+    </details>
+    <details>
+      <summary>"Send me some information"</summary>
+      <div class="body"><em>"Happy to — but generic decks waste your time. Give me 90 seconds on what your pick process looks like and I'll send the one page that's actually relevant. What's your biggest throughput challenge right now?"</em></div>
+    </details>
+    <details>
+      <summary>"We're already looking at [competitor]"</summary>
+      <div class="body"><em>"Good — you should be evaluating options. One thing worth knowing: Infor WMS has been a Gartner Magic Quadrant Leader 8 consecutive years. That's not marketing — it means analysts have validated our execution every year. What criteria are you using to evaluate? I want to make sure you're comparing the right things."</em></div>
+    </details>
+    <details>
+      <summary>"We're not ready / timing isn't right"</summary>
+      <div class="body"><em>"Understood. The customers who are happiest with their go-lives are the ones who started the conversation 6 months before they were 'ready.' What would need to be true for timing to be right? I'd rather be your first call when that changes than your fourth."</em></div>
+    </details>
+    <details>
+      <summary>"IT is the bottleneck / IT owns this decision"</summary>
+      <div class="body"><em>"Totally makes sense — and IT is a critical stakeholder. In our experience though, the business case usually starts with ops. If the DC team can show IT a clear ROI and a low-disruption integration path, the conversation moves faster. Can we build that case together before we loop in IT?"</em></div>
+    </details>
+  </div>
+
+  <!-- ====== EMAIL TEMPLATES ====== -->
+  <div class="page" id="page-emails">
+    <div class="page-head">
+      <p class="kicker">Playbook</p>
+      <h1>Email Templates</h1>
+      <p>Proven frames for cold touch, follow-up, break-up, and re-engagement. Edit — don't start from blank.</p>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <span class="tag">Cold · trigger-based</span>
+        <h3>New facility / expansion</h3>
+        <p class="muted">Subject: <strong>[company] new facility — one thing worth knowing</strong><br><br>
+        Saw the announcement — congrats on the expansion.<br><br>
+        Most teams discover the systems gap 90 days before go-live, when it's expensive to fix. One customer in your space solved it early and banked a 40% productivity increase and 9,000 hours saved annually.<br><br>
+        Worth 15 minutes to see if the math works for your operation?<br><br>
+        — Brian</p>
+      </div>
+      <div class="card">
+        <span class="tag">Cold · leadership change</span>
+        <h3>New exec / VP started</h3>
+        <p class="muted">Subject: congrats on the new role</p>
+        <p class="muted" style="margin-top:8px">
+        Congrats on the new role at [company].<br><br>
+        New supply chain leaders usually inherit a short list of things they'd change if they could — warehouse execution is usually on it.<br><br>
+        I work with DC ops teams on exactly that. Would a quick 20-minute call be worth your time in the next few weeks?<br><br>
+        — Brian</p>
+      </div>
+      <div class="card">
+        <span class="tag">Follow-up</span>
+        <h3>After no response (touch 2–3)</h3>
+        <p class="muted">Subject: RE: [original subject]<br><br>
+        Bumping this up — still think the timing is relevant given [specific trigger].<br><br>
+        If this isn't a priority right now, totally fine to say so. Otherwise, 20 minutes is all I need.<br><br>
+        — Brian</p>
+      </div>
+      <div class="card">
+        <span class="tag">Break-up</span>
+        <h3>Last touch</h3>
+        <p class="muted">Subject: closing the loop<br><br>
+        Haven't heard back so I'll assume timing's off. No hard feelings — these decisions have long cycles.<br><br>
+        One ask: when warehouse systems come up at planning time, keep this thread. The benchmark offer stands.<br><br>
+        — Brian</p>
+      </div>
+      <div class="card">
+        <span class="tag">Re-engagement</span>
+        <h3>Trigger event re-open</h3>
+        <p class="muted">Subject: [trigger] — circling back<br><br>
+        Saw [acquisition/new hire/facility announcement] and thought of our conversation from [timeframe].<br><br>
+        Timing has a way of changing. Worth a quick call to see if the picture looks different now?<br><br>
+        — Brian</p>
+      </div>
+      <div class="card">
+        <span class="tag">Post-event</span>
+        <h3>Trade show follow-up</h3>
+        <p class="muted">Subject: great meeting you at [event]<br><br>
+        Really enjoyed the conversation at the booth. You mentioned [specific thing] — that stuck with me.<br><br>
+        I pulled together the customer story I referenced plus the two-pager on [topic]. Let me know what questions it raises.<br><br>
+        — Brian</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== STORY, STATS & REFERENCES ====== -->
+  <div class="page" id="page-proof">
+    <div class="page-head">
+      <p class="kicker">Playbook</p>
+      <h1>Story, Stats & References</h1>
+      <p>Proof points and customer stories at your fingertips — use these mid-conversation.</p>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <span class="tag">Flagship reference</span>
+        <h3>Endries International</h3>
+        <p class="muted"><strong>40% productivity increase. 9,000+ hours saved annually.</strong><br><br>
+        Industrial fastener distributor. After implementing Infor WMS, their DC team eliminated manual processes and dramatically improved throughput. Use this when labor efficiency or productivity comes up — it's the most concrete number we have.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Analyst recognition</span>
+        <h3>Gartner Magic Quadrant Leader</h3>
+        <p class="muted"><strong>8 consecutive years as a Leader.</strong><br><br>
+        Use to de-risk the shortlist conversation and validate that this isn't a niche or unproven vendor. Frame it as: "This isn't marketing — analysts have validated execution every single year."</p>
+      </div>
+      <div class="card">
+        <span class="tag">AI / innovation</span>
+        <h3>AI-Driven Orchestration</h3>
+        <p class="muted">Infor WMS leverages AI for intelligent task management, labor optimization, and demand-driven slotting. Use when a prospect is evaluating for future-proofing or asks about automation roadmap.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Robotics</span>
+        <h3>Robotics Integration</h3>
+        <p class="muted">Native integration with major robotics and automation vendors — not a bolt-on. Use when automation or robotics is already on the prospect's roadmap or they've visited a competitor demo with robotics.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Positioning</span>
+        <h3>"Rides on top of your ERP"</h3>
+        <p class="muted">WMS is not a replacement for their ERP — it's a layer on top that handles what ERP was never designed for: real-time warehouse execution, labor management, and multi-site visibility. Use when ERP fatigue or recent ERP migrations are the objection.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Competitive</span>
+        <h3>Total Cost of Ownership</h3>
+        <p class="muted">The "do nothing" option has a cost too — mis-ships, overtime, manual workarounds, and missed SLAs. Use to reframe budget objections: "The question isn't what this costs — it's what not doing it is costing you right now."</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== CALL NOTES ====== -->
+  <div class="page" id="page-notes">
+    <div class="page-head">
+      <p class="kicker">Workspace</p>
+      <h1>Call Notes</h1>
+      <p>Log every conversation here. Context compounds — the next call starts where the last one ended.</p>
+    </div>
+    <div class="card">
+      <div class="note-meta">
+        <input type="text" id="noteCompany" placeholder="Company">
+        <input type="text" id="noteContact" placeholder="Contact / title">
+        <input type="text" id="noteDate" placeholder="Date">
+      </div>
+      <textarea id="noteText" placeholder="What happened, what they said, next steps, anything worth remembering…"></textarea>
+      <button class="btn dark" style="margin-top:12px" onclick="saveNote()">Save note</button>
+    </div>
+    <div id="notesList"></div>
+  </div>
+
+</main>
+
+<script>
+// ====== API KEY MANAGEMENT ======
+const MODEL = "claude-sonnet-4-5";
+
+function getKey(){ return localStorage.getItem("bdr_api_key") || ""; }
+function saveKey(){
+  const k = document.getElementById("keyInput").value.trim();
+  if(!k.startsWith("sk-ant-")){ alert("That doesn't look like a valid Anthropic key (should start with sk-ant-)"); return; }
+  localStorage.setItem("bdr_api_key", k);
+  document.getElementById("keyModal").style.display = "none";
+  updateKeyStatus();
+}
+function clearKey(){ localStorage.removeItem("bdr_api_key"); updateKeyStatus(); checkKey(); }
+function changeKey(){ document.getElementById("keyModal").style.display = "flex"; document.getElementById("keyInput").value = getKey(); }
+function updateKeyStatus(){
+  const k = getKey();
+  document.getElementById("apiKeyStatus").textContent = k ? "API key: " + k.slice(0,12) + "…" : "No API key set";
+}
+function checkKey(){
+  if(!getKey()){ document.getElementById("keyModal").style.display = "flex"; }
+  else { document.getElementById("keyModal").style.display = "none"; }
+  updateKeyStatus();
+}
+checkKey();
+
+// ====== CORE API FETCH (streaming) ======
+async function streamAI(messages, outputEl, textEl, curEl, btnEl, btnLabel){
+  const key = getKey();
+  if(!key){ changeKey(); return; }
+  btnEl.disabled = true;
+  btnEl.innerHTML = `<span class="spinner"></span> Thinking…`;
+  outputEl.classList.add("visible");
+  textEl.textContent = "";
+  if(curEl) curEl.style.display = "inline-block";
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1500, stream: true, messages })
+    });
+
+    if(!res.ok){
+      const err = await res.json();
+      textEl.textContent = "Error: " + (err.error?.message || res.status);
+      if(curEl) curEl.style.display = "none";
+      btnEl.disabled = false; btnEl.textContent = btnLabel;
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    while(true){
+      const {done, value} = await reader.read();
+      if(done) break;
+      buf += dec.decode(value, {stream: true});
+      const lines = buf.split("\n");
+      buf = lines.pop();
+      for(const line of lines){
+        if(!line.startsWith("data: ")) continue;
+        const data = line.slice(6);
+        if(data === "[DONE]") break;
+        try {
+          const j = JSON.parse(data);
+          if(j.type === "content_block_delta" && j.delta?.text){
+            textEl.textContent += j.delta.text;
+            outputEl.scrollTop = outputEl.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+  } catch(e) {
+    textEl.textContent = "Network error — check your connection and try again.";
+  }
+
+  if(curEl) curEl.style.display = "none";
+  btnEl.disabled = false;
+  btnEl.textContent = btnLabel;
+}
+
+// ====== ACCOUNT INTELLIGENCE ======
+let personas = [];
+
+async function runIntel(){
+  const company = document.getElementById("intelCompany").value.trim();
+  if(!company){ alert("Enter a company name first"); return; }
+  const btn = document.getElementById("intelBtn");
+  const key = getKey();
+  if(!key){ changeKey(); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Researching…`;
+  document.getElementById("intelBrief").innerHTML = "";
+  document.getElementById("personaGrid").innerHTML = "";
+  document.getElementById("intelOutreach").classList.remove("visible");
+
+  const prompt = `You are an expert B2B sales researcher for Infor WMS (warehouse management software). Research the company "${company}" and return ONLY valid JSON, no markdown, no explanation.
+
+Return this exact structure:
+{
+  "brief": "2-3 sentence company overview including revenue/size if known, industry, number of DCs/facilities, and any recent news relevant to WMS (new facilities, acquisitions, ERP changes, leadership changes)",
+  "signals": "1-2 sentences on why NOW is a good time to reach out — trigger events, pain indicators, timing",
+  "personas": [
+    {
+      "role": "VP, Supply Chain",
+      "why": "One sentence on their pain and the best hook for them",
+      "hook": "The single most compelling angle for this person"
+    },
+    {
+      "role": "Director, DC Operations",
+      "why": "One sentence on their pain and the best hook for them",
+      "hook": "The single most compelling angle for this person"
+    },
+    {
+      "role": "VP, Information Technology",
+      "why": "One sentence on their pain and the best hook for them",
+      "hook": "The single most compelling angle for this person"
+    }
+  ]
+}`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({ model: MODEL, max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
+    });
+
+    const data = await res.json();
+    if(!res.ok){ throw new Error(data.error?.message || res.status); }
+
+    let text = data.content[0].text.trim();
+    // strip any accidental markdown fences
+    text = text.replace(/^```json\s*/i,"").replace(/```$/,"").trim();
+    const intel = JSON.parse(text);
+    personas = intel.personas || [];
+
+    // render brief
+    document.getElementById("intelBrief").innerHTML = `
+      <div class="card" style="margin-bottom:14px">
+        <span class="tag">Company brief</span>
+        <p style="margin-bottom:12px">${intel.brief}</p>
+        <p style="color:var(--signal);font-size:14px;font-weight:600">⚡ ${intel.signals}</p>
+      </div>`;
+
+    // render persona cards
+    const grid = document.getElementById("personaGrid");
+    grid.innerHTML = personas.map((p,i) => `
+      <div class="persona">
+        <div class="role">${p.role}</div>
+        <p class="why">${p.why}</p>
+        <div class="actions">
+          <button class="btn mini dark" onclick="genOutreach(${i},'email')">✉ Email</button>
+          <button class="btn mini ghost" onclick="genOutreach(${i},'talkttrack')">🎙 Talk track</button>
+          <button class="btn mini ghost" onclick="genOutreach(${i},'linkedin')">in LinkedIn</button>
+        </div>
+      </div>`).join("");
+
+  } catch(e) {
+    document.getElementById("intelBrief").innerHTML = `<div class="card"><p class="muted">Error: ${e.message}. Check your API key and try again.</p></div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Research account";
+}
+
+function genOutreach(idx, type){
+  const company = document.getElementById("intelCompany").value.trim();
+  const p = personas[idx];
+  if(!p) return;
+  const typeLabels = { email: "cold email", talkttrack: "call talk track", linkedin: "LinkedIn message" };
+  const label = typeLabels[type] || type;
+
+  const prompt = `You are Brian Chung, a Senior BDR at Infor selling Infor WMS. Write a ${label} for the following:
+
+Company: ${company}
+Persona: ${p.role}
+Their pain: ${p.why}
+Best hook: ${p.hook}
+
+Key proof points to weave in where relevant:
+- Infor WMS is a Gartner Magic Quadrant Leader for 8 consecutive years
+- Customer reference: 40% productivity increase, 9,000+ hours saved annually
+- WMS rides on top of existing ERP — no rip and replace
+- AI-driven orchestration and robotics integration
+
+Tone: conversational, direct, no fluff. Not salesy. Sounds like a smart person who knows what they're talking about.
+${type === "email" ? "Include a subject line. Keep body under 100 words." : ""}
+${type === "talkttrack" ? "Format as a talk track with [OPENER], [BRIDGE], [HOOK], [ASK] sections." : ""}
+${type === "linkedin" ? "Keep it under 60 words. Connection request style — warm, not pitchy." : ""}`;
+
+  const outputEl = document.getElementById("intelOutreach");
+  const textEl = document.getElementById("outreachText");
+  const curEl = document.getElementById("outreachCur");
+  const btn = document.getElementById("intelBtn");
+  document.getElementById("outreachLabel").textContent = `${label} · ${p.role}`;
+  outputEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  streamAI([{ role: "user", content: prompt }], outputEl, textEl, curEl, btn, "Research account");
+}
+
+// ====== AI CALL COACH ======
+function runCoach(){
+  const input = document.getElementById("coachInput").value.trim();
+  if(!input){ alert("Describe the situation or paste what the prospect said"); return; }
+
+  const prompt = `You are an elite B2B sales coach for Infor WMS. Brian is on a call or preparing for one. Here's the situation:
+
+"${input}"
+
+Give him exactly what to say or do next. Be specific and tactical — not generic coaching advice. 
+- If it's an objection, give the exact counter
+- If it's a stall, give the exact re-engage move  
+- If it's a buying signal, tell him how to advance
+- If it's a tough question, give him the answer
+- Include the actual words to say, not just the strategy
+
+Keep it tight — 3-5 sentences max. Brian is a senior rep, not a new hire.`;
+
+  const outputEl = document.getElementById("coachOutput");
+  const textEl = document.getElementById("coachText");
+  const btn = document.getElementById("coachBtn");
+  streamAI([{ role: "user", content: prompt }], outputEl, textEl, null, btn, "Coach me");
+}
+
+// ====== EVENT OUTREACH ======
+function runEvent(){
+  const name = document.getElementById("eventName").value.trim();
+  const booth = document.getElementById("eventBooth").value.trim();
+  const dates = document.getElementById("eventDates").value.trim();
+  const persona = document.getElementById("eventPersona").value.trim();
+  if(!name){ alert("Enter an event name"); return; }
+
+  const prompt = `You are Brian Chung, Senior BDR at Infor WMS. Write a complete event outreach sequence.
+
+Event: ${name}
+Booth: ${booth || "our booth"}
+Dates: ${dates || "the event"}
+Target persona: ${persona || "VP Supply Chain / DC Operations"}
+
+Write:
+1. PRE-EVENT TOUCH 1 (3 weeks out) — subject line + short email
+2. PRE-EVENT TOUCH 2 (1 week out) — subject line + short follow-up or LinkedIn
+3. AT-EVENT TEXT/NOTE — casual message day-of to set up a meeting
+4. POST-EVENT FOLLOW-UP (next day) — subject line + email referencing the conversation
+
+Tone: warm, direct, not templated. Each touch under 80 words. Reference Infor's booth, live demos, and the Gartner Magic Quadrant standing where natural.`;
+
+  const outputEl = document.getElementById("eventOutput");
+  const textEl = document.getElementById("eventText");
+  const curEl = document.getElementById("eventCur");
+  const btn = document.getElementById("eventBtn");
+  streamAI([{ role: "user", content: prompt }], outputEl, textEl, curEl, btn, "Generate sequence");
+}
+
+// ====== INTENT FEED ======
+function runFeed(){
+  const input = document.getElementById("feedInput").value.trim();
+  if(!input){ alert("Paste some intent data or signal descriptions first"); return; }
+
+  const prompt = `You are an expert BDR strategist for Infor WMS. Analyze these intent signals and return a prioritized action plan.
+
+Signals:
+${input}
+
+For each company or signal:
+1. Score urgency (High / Medium / Low) based on WMS buying indicators
+2. Explain WHY it's a signal
+3. Give the exact first move (email angle, call opener, or research action)
+
+Format clearly with company name as header. Be specific and tactical. Focus on signals that indicate active warehouse/DC evaluation, new facilities, system changes, leadership transitions, or robotics/automation interest.`;
+
+  const outputEl = document.getElementById("feedOutput");
+  const textEl = document.getElementById("feedText");
+  const curEl = document.getElementById("feedCur");
+  const btn = document.getElementById("feedBtn");
+  streamAI([{ role: "user", content: prompt }], outputEl, textEl, curEl, btn, "Analyze & prioritize");
+}
+
+// ====== CALL NOTES ======
+function loadNotes(){ return JSON.parse(localStorage.getItem("bdr_notes") || "[]"); }
+function saveNote(){
+  const company = document.getElementById("noteCompany").value.trim();
+  const contact = document.getElementById("noteContact").value.trim();
+  const date = document.getElementById("noteDate").value.trim() || new Date().toLocaleDateString();
+  const text = document.getElementById("noteText").value.trim();
+  if(!text){ alert("Add some notes first"); return; }
+  const notes = loadNotes();
+  notes.unshift({ id: Date.now(), company, contact, date, text });
+  localStorage.setItem("bdr_notes", JSON.stringify(notes));
+  document.getElementById("noteText").value = "";
+  document.getElementById("noteCompany").value = "";
+  document.getElementById("noteContact").value = "";
+  document.getElementById("noteDate").value = "";
+  renderNotes();
+}
+function deleteNote(id){
+  const notes = loadNotes().filter(n => n.id !== id);
+  localStorage.setItem("bdr_notes", JSON.stringify(notes));
+  renderNotes();
+}
+function renderNotes(){
+  const notes = loadNotes();
+  const el = document.getElementById("notesList");
+  if(!notes.length){ el.innerHTML = '<p class="muted" style="padding:8px 0">No notes yet — log your first call above.</p>'; return; }
+  el.innerHTML = notes.map(n => `
+    <div class="saved-note">
+      <div class="meta">${[n.company, n.contact, n.date].filter(Boolean).join(" · ")} <button onclick="deleteNote(${n.id})" style="float:right;background:none;border:0;color:var(--slate);cursor:pointer;font-size:12px">Delete</button></div>
+      <div class="text">${n.text.replace(/\n/g,"<br>")}</div>
+    </div>`).join("");
+}
+renderNotes();
+
+// ====== NAV ======
+document.querySelectorAll(".nav-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("show"));
+    document.getElementById("page-" + btn.dataset.page).classList.add("show");
+    document.querySelector("aside").classList.remove("open");
+    window.scrollTo({ top: 0 });
+  });
+});
+
+// enter key triggers research / coach
+document.getElementById("intelCompany").addEventListener("keydown", e => { if(e.key==="Enter") runIntel(); });
+document.getElementById("coachInput").addEventListener("keydown", e => { if(e.key==="Enter") runCoach(); });
+</script>
+</body>
+</html>
